@@ -75,6 +75,10 @@ def build_kp_context(
             "sum": price * qty,
             "price_text": _fmt_money(price),
             "sum_text": _fmt_money(price * qty),
+            "partner_price": float(row.get("partner_price", row.get("Партнер", price)) or price),
+            "partner_sum": float(row.get("partner_price", row.get("Партнер", price)) or price) * qty,
+            "partner_price_text": _fmt_money(float(row.get("partner_price", row.get("Партнер", price)) or price)),
+            "partner_sum_text": _fmt_money(float(row.get("partner_price", row.get("Партнер", price)) or price) * qty),
             "image_uri": _file_to_data_uri(image),
         })
 
@@ -90,6 +94,8 @@ def build_kp_context(
         })
 
     total = sum(item["sum"] for item in equipment)
+    partner_total = sum(item.get("partner_sum", item["sum"]) for item in equipment)
+    benefit_total = total - partner_total
     return {
         "date": date.today().strftime("%d.%m.%Y"),
         "kp_type": kp_type,
@@ -101,6 +107,8 @@ def build_kp_context(
         "reasons": reasons,
         "total": total,
         "total_text": _fmt_money(total),
+        "partner_total_text": _fmt_money(partner_total),
+        "benefit_total_text": _fmt_money(benefit_total),
         "logo_uri": _file_to_data_uri(base_dir / "assets" / "twg_logo.svg"),
         "people": int(float(values.get("people", 4) or 4)),
         "flow_peak": values.get("flow_peak", 1.5),

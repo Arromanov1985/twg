@@ -126,10 +126,45 @@
     <div class="cost">
       <div class="section-title">Комплектация и стоимость</div>
       <table>
-        <tr><th>№</th><th>Наименование</th><th>Модель</th><th>Кол-во</th><th class="price">Цена</th><th class="price">Сумма</th></tr>
+        {% if is_partner_kp %}
+        <tr>
+          <th>№</th>
+          <th>Наименование</th>
+          <th>Модель</th>
+          <th>Кол-во</th>
+          <th class="price">Розница</th>
+          <th class="price">Партнер</th>
+        </tr>
         {% for item in equipment %}
-        <tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.code }}</td><td>{{ item.qty }}</td><td class="price">{{ item.price_text }}</td><td class="price">{{ item.sum_text }}</td></tr>
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.code }}</td>
+          <td>{{ item.qty }}</td>
+          <td class="price">{{ item.sum_text }}</td>
+          <td class="price">{{ item.partner_sum_text }}</td>
+        </tr>
         {% endfor %}
+        {% else %}
+        <tr>
+          <th>№</th>
+          <th>Наименование</th>
+          <th>Модель</th>
+          <th>Кол-во</th>
+          <th class="price">Цена</th>
+          <th class="price">Сумма</th>
+        </tr>
+        {% for item in equipment %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.code }}</td>
+          <td>{{ item.qty }}</td>
+          <td class="price">{{ item.price_text }}</td>
+          <td class="price">{{ item.sum_text }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
       </table>
       <div class="total"><span>Итого за базовый комплект</span><span class="amount">{{ total_text }}</span></div>
       {% if is_partner_kp %}
