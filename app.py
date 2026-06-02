@@ -39,7 +39,6 @@ TECH_ORDER = [
     "AERO",
     "VR3F100T",   # в КП отображается как TWG 1054-VR5U-100T
     "VRSD100VB",  # в КП отображается как TWG 1054-VR5D-100VB
-    "SALT70",
     "BB20",
     "PP20",
     "OSMOS",
