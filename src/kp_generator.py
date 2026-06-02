@@ -9,6 +9,9 @@ import pandas as pd
 from jinja2 import Template
 
 
+HIDDEN_KP_CODES = {"SALT70"}
+
+
 def _file_to_data_uri(path: Path) -> str:
     if not path.exists():
         return ""
@@ -31,6 +34,10 @@ def _fmt_money(value: Any) -> str:
         return str(value)
 
 
+def _is_visible_in_kp(row: pd.Series) -> bool:
+    return str(row.get("code", "")).strip() not in HIDDEN_KP_CODES
+
+
 def build_kp_context(
     client_data: dict[str, Any],
     values: dict[str, Any],
@@ -40,7 +47,8 @@ def build_kp_context(
     base_dir: Path,
 ) -> dict[str, Any]:
     equipment = []
-    for index, (_, row) in enumerate(selected_df.iterrows(), start=1):
+    visible_df = selected_df[selected_df.apply(_is_visible_in_kp, axis=1)].copy()
+    for index, (_, row) in enumerate(visible_df.iterrows(), start=1):
         image = base_dir / "assets" / "equipment" / str(row.get("image", ""))
         equipment.append({
             "num": index,
