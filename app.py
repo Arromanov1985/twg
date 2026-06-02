@@ -809,44 +809,84 @@ def build_client_form() -> dict[str, Any]:
 
 
 def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[str, Any], client_data: dict[str, Any], analysis: pd.DataFrame) -> None:
-    st.subheader("4. Формирование КП")
+    st.subheader("Формирование КП")
     analysis_for_kp = enrich_analysis_for_kp(analysis, values)
-    context = build_kp_context(
-        client_data=client_data,
-        values=values,
-        analysis_df=analysis_for_kp,
-        selected_df=selected_df,
-        reasons=reasons,
-        base_dir=BASE_DIR,
-    )
-    html = render_kp_html(context, BASE_DIR / "templates" / "kp_template.html")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
+
     with col1:
+        st.markdown("**КП для клиента**")
+        client_context = build_kp_context(
+            client_data=client_data,
+            values=values,
+            analysis_df=analysis_for_kp,
+            selected_df=selected_df,
+            reasons=reasons,
+            base_dir=BASE_DIR,
+            kp_type="client",
+        )
+        client_html = render_kp_html(client_context, BASE_DIR / "templates" / "kp_template.html")
+
         st.download_button(
-            "Скачать КП в HTML",
-            data=html.encode("utf-8"),
-            file_name="KP_TerraWater.html",
+            "Скачать КП для клиента HTML",
+            data=client_html.encode("utf-8"),
+            file_name="KP_TerraWater_client.html",
             mime="text/html",
             width="stretch",
         )
-    with col2:
+
         try:
-            pdf = html_to_pdf_bytes(html, base_dir=BASE_DIR)
+            client_pdf = html_to_pdf_bytes(client_html, base_dir=BASE_DIR)
             st.download_button(
-                "Скачать КП в PDF",
-                data=pdf,
-                file_name="KP_TerraWater.pdf",
+                "Скачать КП для клиента PDF",
+                data=client_pdf,
+                file_name="KP_TerraWater_client.pdf",
                 mime="application/pdf",
                 width="stretch",
             )
         except Exception as exc:
-            st.warning("PDF не сформировался. HTML доступен для скачивания; его можно открыть в браузере и распечатать в PDF.")
+            st.warning("PDF для клиента не сформировался. Скачайте HTML.")
             st.caption(str(exc))
-    with col3:
-        if st.checkbox("Показать HTML-превью"):
-            st.components.v1.html(html, height=900, scrolling=True)
 
+    with col2:
+        st.markdown("**КП для партнера**")
+        partner_context = build_kp_context(
+            client_data=client_data,
+            values=values,
+            analysis_df=analysis_for_kp,
+            selected_df=selected_df,
+            reasons=reasons,
+            base_dir=BASE_DIR,
+            kp_type="partner",
+        )
+        partner_html = render_kp_html(partner_context, BASE_DIR / "templates" / "kp_template.html")
+
+        st.download_button(
+            "Скачать КП для партнера HTML",
+            data=partner_html.encode("utf-8"),
+            file_name="KP_TerraWater_partner.html",
+            mime="text/html",
+            width="stretch",
+        )
+
+        try:
+            partner_pdf = html_to_pdf_bytes(partner_html, base_dir=BASE_DIR)
+            st.download_button(
+                "Скачать КП для партнера PDF",
+                data=partner_pdf,
+                file_name="KP_TerraWater_partner.pdf",
+                mime="application/pdf",
+                width="stretch",
+            )
+        except Exception as exc:
+            st.warning("PDF для партнера не сформировался. Скачайте HTML.")
+            st.caption(str(exc))
+
+    if st.checkbox("Показать HTML-превью клиентского КП"):
+        st.components.v1.html(client_html, height=900, scrolling=True)
+
+    if st.checkbox("Показать HTML-превью партнерского КП"):
+        st.components.v1.html(partner_html, height=900, scrolling=True)
 
 
 def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
