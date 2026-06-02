@@ -61,14 +61,19 @@ def build_kp_context(
     visible_df = selected_df[selected_df.apply(_is_visible_in_kp, axis=1)].copy()
     for index, (_, row) in enumerate(visible_df.iterrows(), start=1):
         image = base_dir / "assets" / "equipment" / str(row.get("image", ""))
+        qty = int(float(row.get("qty", 1) or 1))
+        price = _row_price(row)
         equipment.append({
             "num": index,
             "code": str(row.get("code", "")),
             "name": str(row.get("name", "")),
             "category": str(row.get("category", "")),
             "description": str(row.get("description", "")),
-            "price": _row_price(row),
-            "price_text": _fmt_money(_row_price(row)),
+            "qty": qty,
+            "price": price,
+            "sum": price * qty,
+            "price_text": _fmt_money(price),
+            "sum_text": _fmt_money(price * qty),
             "image_uri": _file_to_data_uri(image),
         })
 
@@ -83,7 +88,7 @@ def build_kp_context(
             "unit": unit,
         })
 
-    total = sum(item["price"] for item in equipment)
+    total = sum(item["sum"] for item in equipment)
     return {
         "date": date.today().strftime("%d.%m.%Y"),
         "client": client_data,

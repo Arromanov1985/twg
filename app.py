@@ -698,38 +698,45 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
             st.caption(str(item["description"]))
 
     st.subheader("3. Комплектация и стоимость")
-    table = selected_df[["name", "code", "price", "description"]].copy()
+    table = selected_df[["name", "code", "qty", "price", "description"]].copy()
+    table["sum"] = table["qty"] * table["price"]
     table.insert(0, "№", range(1, len(table) + 1))
     table.rename(
         columns={
             "name": "Наименование",
             "code": "Модель",
+            "qty": "Кол-во",
             "price": "Цена, ₽",
+            "sum": "Сумма, ₽",
             "description": "Назначение",
         },
         inplace=True,
     )
 
     st.dataframe(table, width="stretch", hide_index=True)
+    total_sum = (selected_df["qty"] * selected_df["price"]).sum()
     st.success(
-        f"Итого за базовый комплект: {selected_df['price'].sum():,.0f} ₽".replace(",", " ")
+        f"Итого за базовый комплект: {total_sum:,.0f} ₽".replace(",", " ")
     )
 
     if {"retail_price", "partner_price", "benefit"}.issubset(selected_df.columns):
         with st.expander("Внутренний расчет выгоды (не выводится в КП)"):
-            internal_table = selected_df[["name", "code", "retail_price", "partner_price", "benefit"]].copy()
+            internal_table = selected_df[["name", "code", "qty", "retail_price", "partner_price", "benefit"]].copy()
+            internal_table["Выгода итого, ₽"] = internal_table["qty"] * internal_table["benefit"]
             internal_table.rename(
                 columns={
                     "name": "Наименование",
                     "code": "Модель",
+                    "qty": "Кол-во",
                     "retail_price": "Розница, ₽",
                     "partner_price": "Партнер, ₽",
-                    "benefit": "Выгода, ₽",
+                    "benefit": "Выгода за ед., ₽",
                 },
                 inplace=True,
             )
             st.dataframe(internal_table, width="stretch", hide_index=True)
-            st.info(f"Итого выгода: {selected_df['benefit'].sum():,.0f} ₽".replace(",", " "))
+            total_benefit = (selected_df["qty"] * selected_df["benefit"]).sum()
+            st.info(f"Итого выгода: {total_benefit:,.0f} ₽".replace(",", " "))
 
     if reasons:
         st.subheader("Почему выбрано это оборудование")
@@ -841,7 +848,7 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
     st.subheader("Подбор оборудования по стадиям")
 
     catalog = catalog.copy()
-    selected_row_ids = []
+    selected_rows = []
     reasons = []
 
     stage_numeric = pd.to_numeric(catalog["stage"], errors="coerce")
@@ -849,8 +856,10 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
     for stage_num in range(1, 9):
         stage_df = catalog[stage_numeric == stage_num].copy()
 
+        stage_name = STAGE_NAMES.get(stage_num, f"Stage {stage_num}")
+
         if stage_df.empty:
-            st.caption(f"Stage {stage_num}: нет позиций в прайсе")
+            st.caption(f"{stage_num}. {stage_name}: нет позиций в прайсе")
             continue
 
         options = list(stage_df.index)
@@ -863,21 +872,37 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
             return f"{code} — {name} — {price:,.0f} ₽".replace(",", " ")
 
         chosen = st.multiselect(
-            f"{stage_num}. {STAGE_NAMES.get(stage_num, f'Stage {stage_num}')}",
+            f"{stage_num}. {stage_name}",
             options=options,
             format_func=label_func,
             key=f"stage_select_{stage_num}",
         )
 
-        selected_row_ids.extend(chosen)
+        for idx in chosen:
+            row = catalog.loc[idx].copy()
+            code = str(row.get("code", ""))
+            name = str(row.get("name", ""))
+
+            qty = st.number_input(
+                f"Кол-во: {code} — {name}",
+                min_value=1,
+                value=1,
+                step=1,
+                key=f"qty_stage_{stage_num}_{idx}",
+            )
+
+            row["qty"] = int(qty)
+            selected_rows.append(row)
 
         if chosen:
-            reasons.append(f"Stage {stage_num}: выбрано позиций — {len(chosen)}.")
+            reasons.append(f"{stage_num}. {stage_name}: выбрано позиций — {len(chosen)}.")
 
-    if not selected_row_ids:
-        return catalog.iloc[0:0].copy(), reasons
+    if not selected_rows:
+        empty = catalog.iloc[0:0].copy()
+        empty["qty"] = []
+        return empty, reasons
 
-    selected_df = catalog.loc[selected_row_ids].copy()
+    selected_df = pd.DataFrame(selected_rows)
     selected_df["_order"] = range(len(selected_df))
 
     return selected_df, reasons
