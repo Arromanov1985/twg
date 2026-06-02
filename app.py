@@ -954,7 +954,7 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
 
 
 def main() -> None:
-    st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.svg"), width="stretch")
+    st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.png"), width="stretch")
     st.sidebar.title("TerraWater Robot")
     st.sidebar.write("Подбор оборудования по анализу воды и формирование КП в HTML/PDF.")
 

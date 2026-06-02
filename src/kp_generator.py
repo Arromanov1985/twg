@@ -109,7 +109,7 @@ def build_kp_context(
         "total_text": _fmt_money(total),
         "partner_total_text": _fmt_money(partner_total),
         "benefit_total_text": _fmt_money(benefit_total),
-        "logo_uri": _file_to_data_uri(base_dir / "assets" / "twg_logo.svg"),
+        "logo_uri": _file_to_data_uri(base_dir / "assets" / "twg_logo.png"),
         "people": int(float(values.get("people", 4) or 4)),
         "flow_peak": values.get("flow_peak", 1.5),
     }
