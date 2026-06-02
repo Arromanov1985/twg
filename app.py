@@ -55,6 +55,18 @@ TECH_ORDER = [
     "OSMOS",
 ]
 
+
+STAGE_NAMES = {
+    1: "Механическая очистка",
+    2: "Аэрация",
+    3: "Обезжелезивание",
+    4: "Умягчение",
+    5: "Финишная механика",
+    6: "Сорбционная доочистка",
+    7: "Питьевая вода",
+    8: "Обеззараживание и опции",
+}
+
 DISPLAY_NAME_OVERRIDES = {
     "VRSD100VB": "TWG 1054-VR5D-100VB",
     "VR3F100T": "TWG 1054-VR5U-100T",
@@ -851,7 +863,7 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
             return f"{code} — {name} — {price:,.0f} ₽".replace(",", " ")
 
         chosen = st.multiselect(
-            f"Stage {stage_num}",
+            f"{stage_num}. {STAGE_NAMES.get(stage_num, f'Stage {stage_num}')}",
             options=options,
             format_func=label_func,
             key=f"stage_select_{stage_num}",
