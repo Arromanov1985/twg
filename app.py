@@ -57,6 +57,16 @@ DESCRIPTION_OVERRIDES = {
     "VR3F100T": "Сорбционная загрузка VR5U-100T. Применяется после аэрации при повышенном железе и марганце.",
 }
 
+IMAGE_OVERRIDES = {
+    "DF100": "df100.png",
+    "AERO": "aero.png",
+    "VR3F100T": "vr5u100t.png",
+    "VRSD100VB": "vr5d100vb.png",
+    "BB20": "bb20.png",
+    "PP20": "pp20.png",
+    "OSMOS": "osmos.png",
+}
+
 ODOR_TYPES = {
     "Нет запаха": {
         "codes": [],
@@ -121,6 +131,9 @@ def apply_catalog_overrides(catalog: pd.DataFrame) -> pd.DataFrame:
     for code, description in DESCRIPTION_OVERRIDES.items():
         mask = code_series == code
         catalog.loc[mask, "description"] = description
+    for code, image in IMAGE_OVERRIDES.items():
+        mask = code_series == code
+        catalog.loc[mask, "image"] = image
     return catalog
 
 
