@@ -343,6 +343,23 @@ def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
     return values
 
 
+
+def build_resin_line_form(values: dict[str, Any]) -> dict[str, Any]:
+    st.subheader("Линейка загрузок")
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        values["product_line"] = st.radio(
+            "Что подбирать",
+            ["TWG", "ЭКОБРАЙТ"],
+            horizontal=True,
+        )
+    with c2:
+        st.info(
+            "Робот использует одну инженерную схему, но меняет линейку загрузок: TWG или ЭКОБРАЙТ."
+        )
+    return values
+
+
 def build_odor_form(values: dict[str, Any]) -> dict[str, Any]:
     st.subheader("1.2. Запах воды")
     c1, c2, c3 = st.columns([2, 1, 2])
