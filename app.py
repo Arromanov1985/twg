@@ -894,7 +894,7 @@ def main() -> None:
 
     render_visual_kp(selected_df, reasons, values, client_data)
     export_kp_block(selected_df, reasons, values, client_data, analysis)
-    admin_panel(catalog, rules)
+    # admin_panel(catalog, rules)  # отключено, чтобы не падало на пустых code в прайсе
 
 
 if __name__ == "__main__":
