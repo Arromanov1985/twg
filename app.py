@@ -33,6 +33,40 @@ OPS = {
     "=": operator.eq,
 }
 
+ODOR_TYPES = {
+    "Нет запаха": {
+        "codes": [],
+        "reason": "Запах не указан — дополнительная ступень по запаху не требуется.",
+    },
+    "Сероводород / тухлые яйца": {
+        "codes": ["AERO", "VR3F"],
+        "reason": "Указан запах сероводорода: добавлены аэрация и последующая фильтрация окисленных примесей.",
+    },
+    "Болотный / органический": {
+        "codes": ["AERO", "CARBON"],
+        "reason": "Указан болотный или органический запах: добавлены аэрация и сорбционная угольная очистка.",
+    },
+    "Хлор / химический": {
+        "codes": ["CARBON"],
+        "reason": "Указан хлорный или химический запах: добавлена угольная сорбционная очистка.",
+    },
+    "Нефтепродукты": {
+        "codes": ["CARBON"],
+        "reason": "Указан запах нефтепродуктов: добавлена сорбционная ступень. Требуется уточняющий лабораторный анализ.",
+    },
+    "Неопределенный неприятный запах": {
+        "codes": ["AERO", "CARBON"],
+        "reason": "Указан неопределенный запах: добавлены универсальные ступени аэрации и сорбционной очистки.",
+    },
+}
+
+ODOR_LEVELS = {
+    "Нет": 0,
+    "Слабый": 1,
+    "Средний": 2,
+    "Сильный": 3,
+}
+
 
 def read_excel(path: Path) -> pd.DataFrame:
     if not path.exists():
@@ -80,9 +114,33 @@ def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
         default = row.get("value", 0)
         with cols[i % 4]:
             if str(default).lower() in {"yes", "no", "true", "false", "да", "нет"}:
-                values[parameter] = st.selectbox(label, ["нет", "да"], index=1 if str(default).lower() in {"yes", "true", "да"} else 0)
+                values[parameter] = st.selectbox(
+                    label,
+                    ["нет", "да"],
+                    index=1 if str(default).lower() in {"yes", "true", "да"} else 0,
+                )
             else:
-                values[parameter] = st.number_input(f"{label}, {unit}" if unit else label, value=float(default), step=0.1)
+                values[parameter] = st.number_input(
+                    f"{label}, {unit}" if unit else label,
+                    value=float(default),
+                    step=0.1,
+                )
+    return values
+
+
+def build_odor_form(values: dict[str, Any]) -> dict[str, Any]:
+    st.subheader("1.1. Запах воды")
+    c1, c2, c3 = st.columns([2, 1, 2])
+    with c1:
+        odor_type = st.selectbox("Тип запаха", list(ODOR_TYPES.keys()))
+    with c2:
+        odor_level = st.selectbox("Интенсивность", list(ODOR_LEVELS.keys()))
+    with c3:
+        st.info("Запах влияет на подбор аэрации, угольной загрузки и дополнительных ступеней очистки.")
+
+    values["odor_type"] = odor_type
+    values["odor_level"] = odor_level
+    values["odor_score"] = ODOR_LEVELS[odor_level]
     return values
 
 
@@ -101,6 +159,36 @@ def rule_matches(value: Any, op: str, threshold: Any) -> bool:
         return False
 
 
+def add_code(selected: list[str], catalog: pd.DataFrame, code: str) -> None:
+    code = str(code).strip()
+    if code and code in set(catalog["code"].astype(str)) and code not in selected:
+        selected.append(code)
+
+
+def apply_odor_selection(
+    selected: list[str],
+    reasons: list[str],
+    values: dict[str, Any],
+    catalog: pd.DataFrame,
+) -> None:
+    odor_type = str(values.get("odor_type", "Нет запаха"))
+    odor_level = str(values.get("odor_level", "Нет"))
+    odor_score = int(values.get("odor_score", 0) or 0)
+
+    if odor_type == "Нет запаха" or odor_score == 0:
+        return
+
+    setup = ODOR_TYPES.get(odor_type, ODOR_TYPES["Неопределенный неприятный запах"])
+    for code in setup["codes"]:
+        add_code(selected, catalog, code)
+
+    reasons.append(f"{setup['reason']} Интенсивность запаха: {odor_level.lower()}.")
+
+    if odor_score >= 3:
+        add_code(selected, catalog, "CARBON")
+        reasons.append("Так как запах сильный, дополнительно рекомендована сорбционная ступень для улучшения вкуса и запаха воды.")
+
+
 def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.DataFrame) -> tuple[list[str], list[str]]:
     selected: list[str] = catalog.loc[catalog["base"], "code"].astype(str).tolist()
     reasons: list[str] = []
@@ -111,12 +199,31 @@ def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.Da
         if rule_matches(values[parameter], rule["operator"], rule["threshold"]):
             codes = [c.strip() for c in str(rule["equipment_codes"]).replace(";", ",").split(",") if c.strip()]
             for code in codes:
-                if code not in selected:
-                    selected.append(code)
+                add_code(selected, catalog, code)
             reason = str(rule.get("reason", "")).strip()
             if reason:
                 reasons.append(reason)
+
+    apply_odor_selection(selected, reasons, values, catalog)
     return selected, reasons
+
+
+def enrich_analysis_for_kp(analysis: pd.DataFrame, values: dict[str, Any]) -> pd.DataFrame:
+    extra_rows = pd.DataFrame([
+        {
+            "parameter": "odor_type",
+            "value": values.get("odor_type", "Нет запаха"),
+            "unit": "",
+            "label": "Тип запаха",
+        },
+        {
+            "parameter": "odor_level",
+            "value": values.get("odor_level", "Нет"),
+            "unit": "",
+            "label": "Интенсивность запаха",
+        },
+    ])
+    return pd.concat([analysis, extra_rows], ignore_index=True)
 
 
 def image_path(file_name: str) -> Path:
@@ -136,7 +243,8 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
             f"{client_data.get('object_type', 'Частный дом')}\n\n"
             f"Источник: {client_data.get('water_source', 'скважина')}\n\n"
             f"Проживающих: до {int(values.get('people', 4))} человек\n\n"
-            f"Расход: до {values.get('flow_peak', 1.5)} м³/ч"
+            f"Расход: до {values.get('flow_peak', 1.5)} м³/ч\n\n"
+            f"Запах: {values.get('odor_type', 'Нет запаха')} / {values.get('odor_level', 'Нет')}"
         )
     with top[1]:
         k1, k2, k3, k4 = st.columns(4)
@@ -151,7 +259,7 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
         with step_cols[(i - 1) % len(step_cols)]:
             p = image_path(item["image"])
             if p.exists():
-                st.image(str(p), use_container_width=True)
+                st.image(str(p), width="stretch")
             st.markdown(f"**{i}. {item['name']}**")
             st.caption(str(item["description"]))
 
@@ -159,7 +267,7 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
     table = selected_df[["name", "code", "price", "description"]].copy()
     table.insert(0, "№", range(1, len(table) + 1))
     table.rename(columns={"name": "Наименование", "code": "Модель", "price": "Цена, ₽", "description": "Назначение"}, inplace=True)
-    st.dataframe(table, use_container_width=True, hide_index=True)
+    st.dataframe(table, width="stretch", hide_index=True)
     st.success(f"Итого за базовый комплект: {selected_df['price'].sum():,.0f} ₽".replace(",", " "))
 
     if reasons:
@@ -181,8 +289,8 @@ def save_uploaded_image(uploaded_file, code: str) -> str | None:
 def admin_panel(catalog: pd.DataFrame, rules: pd.DataFrame) -> None:
     with st.expander("Администрирование: прайс, оборудование, правила и картинки"):
         st.write("Здесь можно быстро проверить базу. Для постоянных изменений редактируйте Excel-файлы в папке `data`.")
-        st.dataframe(catalog, use_container_width=True, hide_index=True)
-        st.dataframe(rules, use_container_width=True, hide_index=True)
+        st.dataframe(catalog, width="stretch", hide_index=True)
+        st.dataframe(rules, width="stretch", hide_index=True)
         st.subheader("Заменить картинку оборудования")
         code = st.selectbox("Оборудование", catalog["code"].tolist(), format_func=lambda c: f"{c} — {catalog.loc[catalog['code']==c, 'name'].iloc[0]}")
         file = st.file_uploader("Новая картинка PNG/JPG/SVG", type=["png", "jpg", "jpeg", "svg"])
@@ -217,10 +325,11 @@ def build_client_form() -> dict[str, Any]:
 
 def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[str, Any], client_data: dict[str, Any], analysis: pd.DataFrame) -> None:
     st.subheader("4. Формирование КП")
+    analysis_for_kp = enrich_analysis_for_kp(analysis, values)
     context = build_kp_context(
         client_data=client_data,
         values=values,
-        analysis_df=analysis,
+        analysis_df=analysis_for_kp,
         selected_df=selected_df,
         reasons=reasons,
         base_dir=BASE_DIR,
@@ -234,7 +343,7 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
             data=html.encode("utf-8"),
             file_name="KP_TerraWater.html",
             mime="text/html",
-            use_container_width=True,
+            width="stretch",
         )
     with col2:
         try:
@@ -244,7 +353,7 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
                 data=pdf,
                 file_name="KP_TerraWater.pdf",
                 mime="application/pdf",
-                use_container_width=True,
+                width="stretch",
             )
         except Exception as exc:
             st.warning("PDF не сформировался. HTML доступен для скачивания; его можно открыть в браузере и распечатать в PDF.")
@@ -255,13 +364,14 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
 
 
 def main() -> None:
-    st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.svg"), use_container_width=True)
+    st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.svg"), width="stretch")
     st.sidebar.title("TerraWater Robot")
     st.sidebar.write("Подбор оборудования по анализу воды и формирование КП в HTML/PDF.")
 
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
     values = build_input_form(analysis)
+    values = build_odor_form(values)
     selected_codes, reasons = select_equipment(values, catalog, rules)
     selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
     selected_df["_order"] = selected_df["code"].apply(lambda x: selected_codes.index(x) if x in selected_codes else 999)
