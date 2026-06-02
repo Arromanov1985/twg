@@ -358,6 +358,7 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
             f"Расход: до {values.get('flow_peak', 1.5)} м³/ч\n\n"
             f"Запах: {values.get('odor_type', 'Нет запаха')} / {values.get('odor_level', 'Нет')}"
         )
+
     with top[1]:
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Чистая вода", "без запаха")
@@ -366,21 +367,53 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
         k4.metric("Гарантия", "5 лет")
 
     st.subheader("2. Как работает система")
-    step_cols = st.columns(min(len(selected_df), 8) if len(selected_df) else 1)
-    for i, (_, item) in enumerate(selected_df.iterrows(), start=1):
+
+    selected_df_scheme = selected_df[
+        selected_df["code"] != "SALT70"
+    ].copy()
+
+    step_cols = st.columns(
+        min(len(selected_df_scheme), 8)
+        if len(selected_df_scheme)
+        else 1
+    )
+
+    for i, (_, item) in enumerate(selected_df_scheme.iterrows(), start=1):
         with step_cols[(i - 1) % len(step_cols)]:
-            p = image_path(item["image"])
+            code = str(item["code"]).strip()
+
+            image_file = IMAGE_OVERRIDES.get(
+                code,
+                str(item.get("image", "")).strip()
+            )
+
+            p = image_path(image_file)
+
             if p.exists():
                 st.image(str(p), width="stretch")
+            else:
+                st.warning(f"Нет картинки: {image_file}")
+
             st.markdown(f"**{i}. {item['name']}**")
             st.caption(str(item["description"]))
 
     st.subheader("3. Комплектация и стоимость")
     table = selected_df[["name", "code", "price", "description"]].copy()
     table.insert(0, "№", range(1, len(table) + 1))
-    table.rename(columns={"name": "Наименование", "code": "Модель", "price": "Цена, ₽", "description": "Назначение"}, inplace=True)
+    table.rename(
+        columns={
+            "name": "Наименование",
+            "code": "Модель",
+            "price": "Цена, ₽",
+            "description": "Назначение",
+        },
+        inplace=True,
+    )
+
     st.dataframe(table, width="stretch", hide_index=True)
-    st.success(f"Итого за базовый комплект: {selected_df['price'].sum():,.0f} ₽".replace(",", " "))
+    st.success(
+        f"Итого за базовый комплект: {selected_df['price'].sum():,.0f} ₽".replace(",", " ")
+    )
 
     if reasons:
         st.subheader("Почему выбрано это оборудование")
