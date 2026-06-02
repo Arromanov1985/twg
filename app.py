@@ -829,39 +829,32 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
     st.subheader("Подбор оборудования по стадиям")
 
     catalog = catalog.copy()
-    catalog["_row_id"] = catalog.index.astype(str)
-
     selected_row_ids = []
     reasons = []
 
-    for stage_num in range(1, 9):
-        stage_key = str(stage_num)
+    stage_numeric = pd.to_numeric(catalog["stage"], errors="coerce")
 
-        stage_df = catalog[
-            catalog["stage"].astype(str).str.strip().str.lower().isin(
-                [stage_key, f"stage {stage_key}", f"стадия {stage_key}"]
-            )
-        ].copy()
+    for stage_num in range(1, 9):
+        stage_df = catalog[stage_numeric == stage_num].copy()
 
         if stage_df.empty:
+            st.caption(f"Stage {stage_num}: нет позиций в прайсе")
             continue
 
-        options = []
-        labels = {}
+        options = list(stage_df.index)
 
-        for _, row in stage_df.iterrows():
-            row_id = str(row.name)
-            name = str(row.get("name", ""))
+        def label_func(idx):
+            row = catalog.loc[idx]
             code = str(row.get("code", ""))
-            price = row.get("price", 0)
-            label = f"{code} — {name} — {float(price):,.0f} ₽".replace(",", " ")
-            options.append(row_id)
-            labels[row_id] = label
+            name = str(row.get("name", ""))
+            price = float(row.get("price", 0) or 0)
+            return f"{code} — {name} — {price:,.0f} ₽".replace(",", " ")
 
         chosen = st.multiselect(
             f"Stage {stage_num}",
             options=options,
-            format_func=lambda x, labels=labels: labels.get(x, x),
+            format_func=label_func,
+            key=f"stage_select_{stage_num}",
         )
 
         selected_row_ids.extend(chosen)
@@ -869,9 +862,14 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
         if chosen:
             reasons.append(f"Stage {stage_num}: выбрано позиций — {len(chosen)}.")
 
-    selected_df = catalog.loc[[int(x) for x in selected_row_ids]].copy() if selected_row_ids else catalog.iloc[0:0].copy()
+    if not selected_row_ids:
+        return catalog.iloc[0:0].copy(), reasons
+
+    selected_df = catalog.loc[selected_row_ids].copy()
+    selected_df["_order"] = range(len(selected_df))
 
     return selected_df, reasons
+
 
 def main() -> None:
     st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.svg"), width="stretch")
