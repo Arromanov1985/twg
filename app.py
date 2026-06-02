@@ -824,6 +824,55 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
             st.components.v1.html(html, height=900, scrolling=True)
 
 
+
+def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    st.subheader("Подбор оборудования по стадиям")
+
+    catalog = catalog.copy()
+    catalog["_row_id"] = catalog.index.astype(str)
+
+    selected_row_ids = []
+    reasons = []
+
+    for stage_num in range(1, 9):
+        stage_key = str(stage_num)
+
+        stage_df = catalog[
+            catalog["stage"].astype(str).str.strip().str.lower().isin(
+                [stage_key, f"stage {stage_key}", f"стадия {stage_key}"]
+            )
+        ].copy()
+
+        if stage_df.empty:
+            continue
+
+        options = []
+        labels = {}
+
+        for _, row in stage_df.iterrows():
+            row_id = str(row.name)
+            name = str(row.get("name", ""))
+            code = str(row.get("code", ""))
+            price = row.get("price", 0)
+            label = f"{code} — {name} — {float(price):,.0f} ₽".replace(",", " ")
+            options.append(row_id)
+            labels[row_id] = label
+
+        chosen = st.multiselect(
+            f"Stage {stage_num}",
+            options=options,
+            format_func=lambda x, labels=labels: labels.get(x, x),
+        )
+
+        selected_row_ids.extend(chosen)
+
+        if chosen:
+            reasons.append(f"Stage {stage_num}: выбрано позиций — {len(chosen)}.")
+
+    selected_df = catalog.loc[[int(x) for x in selected_row_ids]].copy() if selected_row_ids else catalog.iloc[0:0].copy()
+
+    return selected_df, reasons
+
 def main() -> None:
     st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.svg"), width="stretch")
     st.sidebar.title("TerraWater Robot")
@@ -834,10 +883,14 @@ def main() -> None:
     values = build_input_form(analysis)
     values = build_resin_line_form(values)
     values = build_odor_form(values)
-    selected_codes, reasons = select_equipment(values, catalog, rules)
-    selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
-    selected_df["_order"] = selected_df["code"].apply(lambda x: selected_codes.index(x) if x in selected_codes else 999)
-    selected_df = selected_df.sort_values(["_order", "sort_order"])
+    selected_df, reasons = build_stage_selection(catalog)
+
+    if selected_df.empty:
+        st.warning("Выберите оборудование хотя бы в одном Stage.")
+        selected_df = catalog.iloc[0:0].copy()
+    else:
+        selected_df["_order"] = range(len(selected_df))
+        selected_df = selected_df.sort_values(["_order", "sort_order"])
 
     render_visual_kp(selected_df, reasons, values, client_data)
     export_kp_block(selected_df, reasons, values, client_data, analysis)
