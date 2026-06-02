@@ -34,6 +34,17 @@ def _fmt_money(value: Any) -> str:
         return str(value)
 
 
+def _row_price(row: pd.Series) -> float:
+    for key in ("retail_price", "Розница", "price"):
+        try:
+            value = row.get(key, None)
+            if value is not None and not pd.isna(value):
+                return float(value)
+        except Exception:
+            continue
+    return 0.0
+
+
 def _is_visible_in_kp(row: pd.Series) -> bool:
     return str(row.get("code", "")).strip() not in HIDDEN_KP_CODES
 
@@ -56,8 +67,8 @@ def build_kp_context(
             "name": str(row.get("name", "")),
             "category": str(row.get("category", "")),
             "description": str(row.get("description", "")),
-            "price": float(row.get("price", 0) or 0),
-            "price_text": _fmt_money(row.get("price", 0)),
+            "price": _row_price(row),
+            "price_text": _fmt_money(_row_price(row)),
             "image_uri": _file_to_data_uri(image),
         })
 

@@ -75,7 +75,10 @@
       <h1>Коммерческое предложение</h1>
       <h2>Система очистки воды для частного дома</h2>
       <div class="subtitle">Подбор оборудования на основании анализа воды и параметров объекта</div>
-      <div>Дата: {{ date }} · Клиент: {{ client.client_name }} · Менеджер: {{ client.manager }}</div>
+      <div>Дата КП: {{ date }} · Клиент: {{ client.client_name }} · Менеджер: {{ client.manager }}</div>
+      {% if values.analysis_number or values.analysis_date %}
+      <div>Анализ воды{% if values.analysis_number %} № {{ values.analysis_number }}{% endif %}{% if values.analysis_date %} от {{ values.analysis_date }}{% endif %}</div>
+      {% endif %}
     </div>
     <div class="photo"><div class="house-box">Частный дом<br><span style="font-size:12px">чистая вода для семьи</span></div></div>
   </div>
@@ -88,6 +91,8 @@
       <p>👥 Проживающих: до {{ people }} человек</p>
       <p>↔ Расход воды: до {{ flow_peak }} м³/ч</p>
       {% if client.address %}<p>📍 {{ client.address }}</p>{% endif %}
+      {% if client.phone %}<p>☎ {{ client.phone }}</p>{% endif %}
+      {% if client.email %}<p>✉ {{ client.email }}</p>{% endif %}
     </div>
     <div class="benefits">
       <div class="benefit"><div class="icon">💧</div><b>Чистая вода</b>Без запаха, железа и примесей</div>
@@ -137,7 +142,7 @@
 
   <div class="footer">
     <div><b>TWG Terra Water Group</b><br>Комплексные решения по очистке воды для дома и бизнеса</div>
-    <div>8 800 333-02-42<br>www.terrawater.ru<br>info@terrawater.ru</div>
+    <div><b>Контакты</b><br>{{ client.manager }}{% if client.phone %}<br>{{ client.phone }}{% endif %}{% if client.email %}<br>{{ client.email }}{% endif %}</div>
     <div class="cta">Сделаем воду идеальной<br>для вашей семьи!</div>
   </div>
 </div>

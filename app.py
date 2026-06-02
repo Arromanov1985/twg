@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import operator
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -37,13 +38,24 @@ OPS = {
 TECH_ORDER = [
     "DF100",
     "AERO",
+<<<<<<< HEAD
     "VR3F100T",   # в КП отображается как TWG 1054-VR5U-100T
     "VRSD100VB",  # в КП отображается как TWG 1054-VR5D-100VB
+=======
+    "VR3F100T",
+    "ECO_ORGANIC_B",
+    "ECO_ORGANIC_PLUS_B",
+    "TWG_ORGANIC_MIX",
+    "VRSD100VB",
+    "ECO_STD",
+    "ECO_STD_B",
+    "SALT70",
+>>>>>>> 77cd75c (Интегрирована логика подбора TWG и ЭКОБРАЙТ)
     "BB20",
     "PP20",
-    "OSMOS",
     "CARBON",
     "UV",
+    "OSMOS",
 ]
 
 DISPLAY_NAME_OVERRIDES = {
@@ -65,6 +77,97 @@ IMAGE_OVERRIDES = {
     "PP20": "pp20.png",
     "OSMOS": "osmos.png",
 }
+
+
+TWG_MEDIA_CODES = {"VR3F100T", "VRSD100VB", "TWG_ORGANIC_MIX"}
+ECOBRIGHT_MEDIA_CODES = {
+    "ECO_STD",
+    "ECO_STD_B",
+    "ECO_ORGANIC",
+    "ECO_ORGANIC_B",
+    "ECO_ORGANIC_PLUS",
+    "ECO_ORGANIC_PLUS_B",
+}
+
+EXTRA_PRODUCTS = [
+    {
+        "code": "TWG_ORGANIC_MIX",
+        "name": "TWG VR5U Organic Mix",
+        "stage": "Микс-загрузка",
+        "category": "media",
+        "description": "Комплексная загрузка TWG для воды с органикой, цветностью, запахом и повышенной окисляемостью.",
+        "price": 0,
+        "image": "vr5u100t.png",
+        "base": False,
+        "sort_order": 35,
+    },
+    {
+        "code": "ECO_STD",
+        "name": "ЭКОБРАЙТ Стандарт",
+        "stage": "Ионообменная загрузка",
+        "category": "media",
+        "description": "Na-катионит для умягчения воды без выраженного железа, марганца и органики.",
+        "price": 0,
+        "image": "vr5d100vb.png",
+        "base": False,
+        "sort_order": 60,
+    },
+    {
+        "code": "ECO_STD_B",
+        "name": "ЭКОБРАЙТ Стандарт Б",
+        "stage": "Ионообменная загрузка",
+        "category": "media",
+        "description": "Ионообменная загрузка для умягчения в более сложной воде.",
+        "price": 0,
+        "image": "vr5d100vb.png",
+        "base": False,
+        "sort_order": 61,
+    },
+    {
+        "code": "ECO_ORGANIC",
+        "name": "ЭКОБРАЙТ Органик",
+        "stage": "Микс-загрузка",
+        "category": "media",
+        "description": "Микс для воды с органикой, цветностью и повышенной окисляемостью без сильного железа.",
+        "price": 0,
+        "image": "vr5u100t.png",
+        "base": False,
+        "sort_order": 62,
+    },
+    {
+        "code": "ECO_ORGANIC_B",
+        "name": "ЭКОБРАЙТ Органик Б",
+        "stage": "Микс-загрузка",
+        "category": "media",
+        "description": "Микс-загрузка для воды с железом, марганцем, запахом и умеренной органикой.",
+        "price": 0,
+        "image": "vr5u100t.png",
+        "base": False,
+        "sort_order": 63,
+    },
+    {
+        "code": "ECO_ORGANIC_PLUS",
+        "name": "ЭКОБРАЙТ Органик+",
+        "stage": "Микс-загрузка",
+        "category": "media",
+        "description": "Усиленный микс для воды с высокой окисляемостью, органикой и цветностью.",
+        "price": 0,
+        "image": "vr5u100t.png",
+        "base": False,
+        "sort_order": 64,
+    },
+    {
+        "code": "ECO_ORGANIC_PLUS_B",
+        "name": "ЭКОБРАЙТ Органик+ Б",
+        "stage": "Микс-загрузка",
+        "category": "media",
+        "description": "Усиленный микс для сложной воды: органика, железо, марганец, запах, высокая окисляемость.",
+        "price": 0,
+        "image": "vr5u100t.png",
+        "base": False,
+        "sort_order": 65,
+    },
+]
 
 ODOR_TYPES = {
     "Нет запаха": {
@@ -101,6 +204,49 @@ ODOR_LEVELS = {
 }
 
 
+PRICE_COLUMN_ALIASES = {
+    "retail": ["Розница", "Цена Розница", "Цена розница", "retail_price", "price_retail", "price"],
+    "partner": ["Партнер", "Партнёр", "Цена Партнер", "Цена партнера", "Цена партнёра", "partner_price", "price_partner"],
+}
+
+
+def _first_existing_column(df: pd.DataFrame, names: list[str]) -> str | None:
+    normalized = {str(col).strip().lower(): col for col in df.columns}
+    for name in names:
+        key = name.strip().lower()
+        if key in normalized:
+            return normalized[key]
+    return None
+
+
+def ensure_price_columns(catalog: pd.DataFrame) -> pd.DataFrame:
+    catalog = catalog.copy()
+
+    retail_col = _first_existing_column(catalog, PRICE_COLUMN_ALIASES["retail"])
+    partner_col = _first_existing_column(catalog, PRICE_COLUMN_ALIASES["partner"])
+
+    if retail_col is None:
+        catalog["Розница"] = 0
+        retail_col = "Розница"
+
+    catalog["Розница"] = pd.to_numeric(catalog[retail_col], errors="coerce").fillna(0)
+
+    if partner_col is None:
+        catalog["Партнер"] = catalog["Розница"]
+    else:
+        catalog["Партнер"] = pd.to_numeric(catalog[partner_col], errors="coerce").fillna(catalog["Розница"])
+
+    catalog["Выгода"] = catalog["Розница"] - catalog["Партнер"]
+
+    # ВАЖНО: для клиента и КП используем только розничную цену.
+    catalog["retail_price"] = catalog["Розница"]
+    catalog["partner_price"] = catalog["Партнер"]
+    catalog["benefit"] = catalog["Выгода"]
+    catalog["price"] = catalog["Розница"]
+
+    return catalog
+
+
 def read_excel(path: Path) -> pd.DataFrame:
     if not path.exists():
         st.error(f"Не найден файл: {path}")
@@ -121,6 +267,7 @@ def validate(df: pd.DataFrame, required: set[str], file_name: str) -> None:
         st.stop()
 
 
+
 def apply_catalog_overrides(catalog: pd.DataFrame) -> pd.DataFrame:
     catalog = catalog.copy()
     code_series = catalog["code"].astype(str).str.strip()
@@ -136,6 +283,18 @@ def apply_catalog_overrides(catalog: pd.DataFrame) -> pd.DataFrame:
     return catalog
 
 
+
+def add_extra_products(catalog: pd.DataFrame) -> pd.DataFrame:
+    catalog = catalog.copy()
+    existing_codes = set(catalog["code"].astype(str))
+    rows = []
+    for row in EXTRA_PRODUCTS:
+        if row["code"] not in existing_codes:
+            rows.append(row)
+    if rows:
+        catalog = pd.concat([catalog, pd.DataFrame(rows)], ignore_index=True)
+    return catalog
+
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     analysis = normalize_columns(read_excel(ANALYSIS_FILE))
     catalog = normalize_columns(read_excel(CATALOG_FILE))
@@ -146,15 +305,25 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     catalog["code"] = catalog["code"].astype(str).str.strip()
     catalog["base"] = catalog["base"].fillna(False).astype(bool)
     catalog["price"] = pd.to_numeric(catalog["price"], errors="coerce").fillna(0)
+    catalog = ensure_price_columns(catalog)
     catalog["sort_order"] = pd.to_numeric(catalog["sort_order"], errors="coerce").fillna(9999)
     catalog = apply_catalog_overrides(catalog)
+    catalog = add_extra_products(catalog)
     rules["active"] = rules["active"].fillna(True).astype(bool)
     return analysis, catalog, rules
 
 
 def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
     values: dict[str, Any] = {}
-    st.subheader("1. Анализ воды и объект")
+    st.subheader("Анализ воды и объект")
+
+    meta_cols = st.columns(2)
+    with meta_cols[0]:
+        values["analysis_number"] = st.text_input("Номер анализа", "")
+    with meta_cols[1]:
+        analysis_date = st.date_input("Дата анализа", value=date.today())
+        values["analysis_date"] = analysis_date.strftime("%d.%m.%Y")
+
     cols = st.columns(4)
     for i, row in analysis.iterrows():
         parameter = str(row["parameter"]).strip()
@@ -178,7 +347,7 @@ def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
 
 
 def build_odor_form(values: dict[str, Any]) -> dict[str, Any]:
-    st.subheader("1.1. Запах воды")
+    st.subheader("1.2. Запах воды")
     c1, c2, c3 = st.columns([2, 1, 2])
     with c1:
         odor_type = st.selectbox("Тип запаха", list(ODOR_TYPES.keys()))
@@ -199,6 +368,17 @@ def safe_float(value: Any, default: float = 0.0) -> float:
     except Exception:
         return default
 
+
+
+def get_value(values: dict[str, Any], aliases: list[str], default: float = 0.0) -> float:
+    for key in aliases:
+        if key in values:
+            return safe_float(values.get(key), default)
+    return default
+
+
+def remove_codes(selected: list[str], codes: set[str]) -> list[str]:
+    return [code for code in selected if code not in codes]
 
 def rule_matches(value: Any, op: str, threshold: Any) -> bool:
     op = str(op).strip()
@@ -246,38 +426,90 @@ def apply_odor_selection(
         reasons.append("Так как запах сильный, дополнительно рекомендована сорбционная ступень для улучшения вкуса и запаха воды.")
 
 
+
 def apply_engineering_rules(
     selected: list[str],
     reasons: list[str],
     values: dict[str, Any],
     catalog: pd.DataFrame,
 ) -> None:
-    iron = safe_float(values.get("iron", 0))
-    manganese = safe_float(values.get("manganese", 0))
-    hardness = safe_float(values.get("hardness", 0))
-    iron_manganese_sum = iron + manganese
+    line = str(values.get("product_line", "TWG"))
+    iron = get_value(values, ["iron", "fe", "железо"])
+    manganese = get_value(values, ["manganese", "mn", "марганец"])
+    hardness = get_value(values, ["hardness", "жесткость", "hard"])
+    oxid = get_value(values, ["permanganate", "oxidizability", "permanganate_oxidizability", "окисляемость"])
+    h2s = get_value(values, ["h2s", "hydrogen_sulfide", "сероводород"])
+    ph = get_value(values, ["ph", "pH"], default=7.0)
+    tds = get_value(values, ["tds", "salt", "солесодержание"])
+    odor_score = int(values.get("odor_score", 0) or 0)
+
+    fe_mn = iron + manganese
+
+    selected[:] = remove_codes(selected, TWG_MEDIA_CODES | ECOBRIGHT_MEDIA_CODES)
 
     add_code(selected, catalog, "DF100")
 
-    if 5 <= iron_manganese_sum <= 10:
-        add_code(selected, catalog, "AERO")
-        add_code(selected, catalog, "VR3F100T")
-        reasons.append(
-            "Сумма железа и марганца от 5 до 10 мг/л: требуется аэрация и сорбционный фильтр TWG 1054-VR5U-100T."
-        )
-    elif iron_manganese_sum > 10:
-        add_code(selected, catalog, "AERO")
-        add_code(selected, catalog, "VR3F100T")
-        reasons.append(
-            "Сумма железа и марганца выше 10 мг/л: требуется аэрация и усиленная сорбционная ступень; рекомендуется инженерная проверка схемы."
-        )
+    needs_aeration = fe_mn >= 1.0 or h2s > 0 or odor_score >= 2
+    hard_water = hardness >= 3.0
+    very_hard_water = hardness >= 5.0
+    has_iron_mn = iron > 0.3 or manganese > 0.05
+    high_iron_mn = fe_mn >= 5.0
+    organic = oxid >= 5.0
+    high_organic = oxid >= 9.0
+    complex_water = high_iron_mn or high_organic or (organic and has_iron_mn) or h2s > 0 or odor_score >= 2
 
-    if hardness > 0 and "VRSD100VB" in selected:
-        add_code(selected, catalog, "SALT70")
-    elif hardness >= 5:
-        add_code(selected, catalog, "VRSD100VB")
-        add_code(selected, catalog, "SALT70")
-        reasons.append("Высокая жесткость: требуется умягчитель TWG 1054-VR5D-100VB и солевой бак TWG SALT-70L PRO.")
+    if needs_aeration:
+        add_code(selected, catalog, "AERO")
+        reasons.append("Требуется предварительная аэрация: есть железо/марганец, сероводород или выраженный запах.")
+
+    if line == "TWG":
+        if complex_water and high_organic:
+            add_code(selected, catalog, "TWG_ORGANIC_MIX")
+            reasons.append("Выбрана TWG VR5U Organic Mix: высокая окисляемость/органика и сложный состав воды.")
+        elif has_iron_mn or h2s > 0 or odor_score > 0:
+            add_code(selected, catalog, "VR3F100T")
+            reasons.append("Выбрана TWG 1054-VR5U-100T: удаление железа, марганца и запаха после подготовки воды.")
+
+        if hard_water:
+            add_code(selected, catalog, "VRSD100VB")
+            add_code(selected, catalog, "SALT70")
+            if very_hard_water:
+                reasons.append("Жесткость высокая: требуется TWG 1054-VR5D-100VB и солевой бак TWG SALT-70L PRO.")
+            else:
+                reasons.append("Жесткость выше комфортной: рекомендовано умягчение на TWG 1054-VR5D-100VB.")
+
+    else:
+        if high_organic and has_iron_mn:
+            add_code(selected, catalog, "ECO_ORGANIC_PLUS_B")
+            reasons.append("Выбран ЭКОБРАЙТ Органик+ Б: органика/окисляемость плюс железо или марганец.")
+        elif high_organic:
+            add_code(selected, catalog, "ECO_ORGANIC_PLUS")
+            reasons.append("Выбран ЭКОБРАЙТ Органик+: высокая окисляемость и органические загрязнения.")
+        elif organic and has_iron_mn:
+            add_code(selected, catalog, "ECO_ORGANIC_B")
+            reasons.append("Выбран ЭКОБРАЙТ Органик Б: органика плюс железо/марганец/запах.")
+        elif organic:
+            add_code(selected, catalog, "ECO_ORGANIC")
+            reasons.append("Выбран ЭКОБРАЙТ Органик: повышенная окисляемость и органические примеси.")
+        elif has_iron_mn or h2s > 0 or odor_score > 0:
+            add_code(selected, catalog, "ECO_ORGANIC_B")
+            reasons.append("Выбран ЭКОБРАЙТ Органик Б: железо/марганец/запах без выраженной органики.")
+
+        if hard_water:
+            if complex_water:
+                add_code(selected, catalog, "ECO_STD_B")
+                reasons.append("Для умягчения в сложной воде выбран ЭКОБРАЙТ Стандарт Б.")
+            else:
+                add_code(selected, catalog, "ECO_STD")
+                reasons.append("Для умягчения выбран ЭКОБРАЙТ Стандарт.")
+            add_code(selected, catalog, "SALT70")
+
+    if ph < 6.5 or ph > 8.5:
+        reasons.append("pH вне комфортного диапазона 6.5–8.5: нужна инженерная проверка перед финальным КП.")
+
+    if tds >= 800:
+        add_code(selected, catalog, "OSMOS")
+        reasons.append("Солесодержание повышено: рекомендован обратный осмос для питьевой воды.")
 
     add_code(selected, catalog, "BB20")
     add_code(selected, catalog, "PP20")
@@ -313,14 +545,37 @@ def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.Da
     apply_engineering_rules(selected, reasons, values, catalog)
     apply_odor_selection(selected, reasons, values, catalog)
 
-    if "VRSD100VB" in selected:
+    if any(code in selected for code in {"VRSD100VB", "ECO_STD", "ECO_STD_B", "ECO_ORGANIC", "ECO_ORGANIC_B", "ECO_ORGANIC_PLUS", "ECO_ORGANIC_PLUS_B"}):
         add_code(selected, catalog, "SALT70")
 
     return normalize_selection_order(selected), reasons
 
 
 def enrich_analysis_for_kp(analysis: pd.DataFrame, values: dict[str, Any]) -> pd.DataFrame:
-    extra_rows = pd.DataFrame([
+    extra_rows = [
+        {
+            "parameter": "analysis_number",
+            "value": values.get("analysis_number", ""),
+            "unit": "",
+            "label": "Номер анализа",
+        },
+        {
+            "parameter": "analysis_date",
+            "value": values.get("analysis_date", ""),
+            "unit": "",
+            "label": "Дата анализа",
+        },
+    ]
+
+    if "product_line" in values:
+        extra_rows.append({
+            "parameter": "product_line",
+            "value": values.get("product_line", ""),
+            "unit": "",
+            "label": "Линейка загрузок",
+        })
+
+    extra_rows.extend([
         {
             "parameter": "odor_type",
             "value": values.get("odor_type", "Нет запаха"),
@@ -334,7 +589,8 @@ def enrich_analysis_for_kp(analysis: pd.DataFrame, values: dict[str, Any]) -> pd
             "label": "Интенсивность запаха",
         },
     ])
-    return pd.concat([analysis, extra_rows], ignore_index=True)
+
+    return pd.concat([analysis, pd.DataFrame(extra_rows)], ignore_index=True)
 
 
 def image_path(file_name: str) -> Path:
@@ -355,6 +611,7 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
             f"Источник: {client_data.get('water_source', 'скважина')}\n\n"
             f"Проживающих: до {int(values.get('people', 4))} человек\n\n"
             f"Расход: до {values.get('flow_peak', 1.5)} м³/ч\n\n"
+            f"Линейка: {values.get('product_line', 'TWG')}\n\n"
             f"Запах: {values.get('odor_type', 'Нет запаха')} / {values.get('odor_level', 'Нет')}"
         )
 
@@ -414,6 +671,22 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
         f"Итого за базовый комплект: {selected_df['price'].sum():,.0f} ₽".replace(",", " ")
     )
 
+    if {"retail_price", "partner_price", "benefit"}.issubset(selected_df.columns):
+        with st.expander("Внутренний расчет выгоды (не выводится в КП)"):
+            internal_table = selected_df[["name", "code", "retail_price", "partner_price", "benefit"]].copy()
+            internal_table.rename(
+                columns={
+                    "name": "Наименование",
+                    "code": "Модель",
+                    "retail_price": "Розница, ₽",
+                    "partner_price": "Партнер, ₽",
+                    "benefit": "Выгода, ₽",
+                },
+                inplace=True,
+            )
+            st.dataframe(internal_table, width="stretch", hide_index=True)
+            st.info(f"Итого выгода: {selected_df['benefit'].sum():,.0f} ₽".replace(",", " "))
+
     if reasons:
         st.subheader("Почему выбрано это оборудование")
         for reason in reasons:
@@ -447,22 +720,34 @@ def admin_panel(catalog: pd.DataFrame, rules: pd.DataFrame) -> None:
 
 
 def build_client_form() -> dict[str, Any]:
-    st.subheader("0. Данные клиента")
+    st.subheader("Данные объекта")
+    o1, o2, o3 = st.columns(3)
+    with o1:
+        object_type = st.text_input("Тип объекта", "Частный дом")
+    with o2:
+        water_source = st.text_input("Источник воды", "Скважина")
+    with o3:
+        address = st.text_input("Адрес/объект для КП", "")
+
+    st.subheader("Контакты")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        client_name = st.text_input("Клиент", "Частный клиент")
+        company = st.text_input("Компания", "Частный клиент")
     with c2:
-        object_type = st.text_input("Тип объекта", "Частный дом")
-    with c3:
-        water_source = st.text_input("Источник воды", "Скважина")
-    with c4:
         manager = st.text_input("Менеджер", "TerraWater Group")
-    address = st.text_input("Адрес/объект для КП", "")
+    with c3:
+        phone = st.text_input("Телефон", "")
+    with c4:
+        email = st.text_input("Почта", "")
+
     return {
-        "client_name": client_name,
+        "client_name": company,
+        "company": company,
         "object_type": object_type,
         "water_source": water_source,
         "manager": manager,
+        "phone": phone,
+        "email": email,
         "address": address,
     }
 
@@ -515,6 +800,7 @@ def main() -> None:
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
     values = build_input_form(analysis)
+    values = build_resin_line_form(values)
     values = build_odor_form(values)
     selected_codes, reasons = select_equipment(values, catalog, rules)
     selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
