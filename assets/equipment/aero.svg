@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="240" viewBox="0 0 220 240">
-<rect width="220" height="240" rx="18" fill="#f7fbff"/>
-<rect x="75" y="35" width="70" height="110" rx="22" fill="#cfd8d3" stroke="#0b63ce" stroke-width="4"/>
-<rect x="83" y="22" width="54" height="25" rx="6" fill="#061b4e"/>
-<circle cx="110" cy="34" r="7" fill="#3bb3ff"/>
-<rect x="95" y="145" width="30" height="18" rx="4" fill="#061b4e"/>
-<text x="110" y="150" text-anchor="middle" font-size="20" font-weight="700" fill="#002a8b" font-family="Arial">Аэрация</text>
-</svg>
