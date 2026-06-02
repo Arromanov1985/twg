@@ -33,14 +33,38 @@ OPS = {
     "=": operator.eq,
 }
 
+# Жесткая технологическая очередность TWG для схемы и КП.
+TECH_ORDER = [
+    "DF100",
+    "AERO",
+    "VR3F100T",   # в КП отображается как TWG 1054-VR5U-100T
+    "VRSD100VB",  # в КП отображается как TWG 1054-VR5D-100VB
+    "SALT70",
+    "BB20",
+    "PP20",
+    "OSMOS",
+    "CARBON",
+    "UV",
+]
+
+DISPLAY_NAME_OVERRIDES = {
+    "VRSD100VB": "TWG 1054-VR5D-100VB",
+    "VR3F100T": "TWG 1054-VR5U-100T",
+}
+
+DESCRIPTION_OVERRIDES = {
+    "VRSD100VB": "Ионообменные смолы. Удаляет соли жесткости и всегда комплектуется солевым баком.",
+    "VR3F100T": "Сорбционная загрузка VR5U-100T. Применяется после аэрации при повышенном железе и марганце.",
+}
+
 ODOR_TYPES = {
     "Нет запаха": {
         "codes": [],
         "reason": "Запах не указан — дополнительная ступень по запаху не требуется.",
     },
     "Сероводород / тухлые яйца": {
-        "codes": ["AERO", "VR3F"],
-        "reason": "Указан запах сероводорода: добавлены аэрация и последующая фильтрация окисленных примесей.",
+        "codes": ["AERO", "VR3F100T"],
+        "reason": "Указан запах сероводорода: добавлены аэрация и сорбционная фильтрация.",
     },
     "Болотный / органический": {
         "codes": ["AERO", "CARBON"],
@@ -88,6 +112,18 @@ def validate(df: pd.DataFrame, required: set[str], file_name: str) -> None:
         st.stop()
 
 
+def apply_catalog_overrides(catalog: pd.DataFrame) -> pd.DataFrame:
+    catalog = catalog.copy()
+    code_series = catalog["code"].astype(str).str.strip()
+    for code, name in DISPLAY_NAME_OVERRIDES.items():
+        mask = code_series == code
+        catalog.loc[mask, "name"] = name
+    for code, description in DESCRIPTION_OVERRIDES.items():
+        mask = code_series == code
+        catalog.loc[mask, "description"] = description
+    return catalog
+
+
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     analysis = normalize_columns(read_excel(ANALYSIS_FILE))
     catalog = normalize_columns(read_excel(CATALOG_FILE))
@@ -99,6 +135,7 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     catalog["base"] = catalog["base"].fillna(False).astype(bool)
     catalog["price"] = pd.to_numeric(catalog["price"], errors="coerce").fillna(0)
     catalog["sort_order"] = pd.to_numeric(catalog["sort_order"], errors="coerce").fillna(9999)
+    catalog = apply_catalog_overrides(catalog)
     rules["active"] = rules["active"].fillna(True).astype(bool)
     return analysis, catalog, rules
 
@@ -136,12 +173,19 @@ def build_odor_form(values: dict[str, Any]) -> dict[str, Any]:
     with c2:
         odor_level = st.selectbox("Интенсивность", list(ODOR_LEVELS.keys()))
     with c3:
-        st.info("Запах влияет на подбор аэрации, угольной загрузки и дополнительных ступеней очистки.")
+        st.info("Запах влияет на подбор аэрации, сорбционной загрузки и дополнительных ступеней очистки.")
 
     values["odor_type"] = odor_type
     values["odor_level"] = odor_level
     values["odor_score"] = ODOR_LEVELS[odor_level]
     return values
+
+
+def safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
 
 
 def rule_matches(value: Any, op: str, threshold: Any) -> bool:
@@ -161,7 +205,8 @@ def rule_matches(value: Any, op: str, threshold: Any) -> bool:
 
 def add_code(selected: list[str], catalog: pd.DataFrame, code: str) -> None:
     code = str(code).strip()
-    if code and code in set(catalog["code"].astype(str)) and code not in selected:
+    available_codes = set(catalog["code"].astype(str))
+    if code and code in available_codes and code not in selected:
         selected.append(code)
 
 
@@ -189,9 +234,58 @@ def apply_odor_selection(
         reasons.append("Так как запах сильный, дополнительно рекомендована сорбционная ступень для улучшения вкуса и запаха воды.")
 
 
+def apply_engineering_rules(
+    selected: list[str],
+    reasons: list[str],
+    values: dict[str, Any],
+    catalog: pd.DataFrame,
+) -> None:
+    iron = safe_float(values.get("iron", 0))
+    manganese = safe_float(values.get("manganese", 0))
+    hardness = safe_float(values.get("hardness", 0))
+    iron_manganese_sum = iron + manganese
+
+    add_code(selected, catalog, "DF100")
+
+    if 5 <= iron_manganese_sum <= 10:
+        add_code(selected, catalog, "AERO")
+        add_code(selected, catalog, "VR3F100T")
+        reasons.append(
+            "Сумма железа и марганца от 5 до 10 мг/л: требуется аэрация и сорбционный фильтр TWG 1054-VR5U-100T."
+        )
+    elif iron_manganese_sum > 10:
+        add_code(selected, catalog, "AERO")
+        add_code(selected, catalog, "VR3F100T")
+        reasons.append(
+            "Сумма железа и марганца выше 10 мг/л: требуется аэрация и усиленная сорбционная ступень; рекомендуется инженерная проверка схемы."
+        )
+
+    if hardness > 0 and "VRSD100VB" in selected:
+        add_code(selected, catalog, "SALT70")
+    elif hardness >= 5:
+        add_code(selected, catalog, "VRSD100VB")
+        add_code(selected, catalog, "SALT70")
+        reasons.append("Высокая жесткость: требуется умягчитель TWG 1054-VR5D-100VB и солевой бак TWG SALT-70L PRO.")
+
+    add_code(selected, catalog, "BB20")
+    add_code(selected, catalog, "PP20")
+
+
+def normalize_selection_order(selected: list[str]) -> list[str]:
+    unique = []
+    for code in selected:
+        if code not in unique:
+            unique.append(code)
+
+    priority = {code: index for index, code in enumerate(TECH_ORDER)}
+    return sorted(unique, key=lambda code: priority.get(code, 999 + unique.index(code)))
+
+
 def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.DataFrame) -> tuple[list[str], list[str]]:
+    # Базовые позиции из Excel сохраняются, но итоговая очередность задается инженерной схемой TWG.
     selected: list[str] = catalog.loc[catalog["base"], "code"].astype(str).tolist()
     reasons: list[str] = []
+
     for _, rule in rules[rules["active"]].iterrows():
         parameter = str(rule["parameter"]).strip()
         if parameter not in values:
@@ -204,8 +298,13 @@ def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.Da
             if reason:
                 reasons.append(reason)
 
+    apply_engineering_rules(selected, reasons, values, catalog)
     apply_odor_selection(selected, reasons, values, catalog)
-    return selected, reasons
+
+    if "VRSD100VB" in selected:
+        add_code(selected, catalog, "SALT70")
+
+    return normalize_selection_order(selected), reasons
 
 
 def enrich_analysis_for_kp(analysis: pd.DataFrame, values: dict[str, Any]) -> pd.DataFrame:
