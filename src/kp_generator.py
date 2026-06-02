@@ -56,6 +56,7 @@ def build_kp_context(
     selected_df: pd.DataFrame,
     reasons: list[str],
     base_dir: Path,
+    kp_type: str = "client",
 ) -> dict[str, Any]:
     equipment = []
     visible_df = selected_df[selected_df.apply(_is_visible_in_kp, axis=1)].copy()
@@ -91,6 +92,8 @@ def build_kp_context(
     total = sum(item["sum"] for item in equipment)
     return {
         "date": date.today().strftime("%d.%m.%Y"),
+        "kp_type": kp_type,
+        "is_partner_kp": kp_type == "partner",
         "client": client_data,
         "values": values,
         "analysis_rows": analysis_rows,
