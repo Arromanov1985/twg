@@ -132,6 +132,12 @@
         {% endfor %}
       </table>
       <div class="total"><span>Итого за базовый комплект</span><span class="amount">{{ total_text }}</span></div>
+      {% if is_partner_kp %}
+      <div class="partner-profit">
+        <div class="label">Ваша выгода</div>
+        <div class="amount">{{ benefit_total_text }}</div>
+      </div>
+      {% endif %}
       <p>ⓘ Стоимость может корректироваться в зависимости от итогового анализа воды и условий монтажа.</p>
     </div>
     <div class="why">
