@@ -38,10 +38,8 @@ OPS = {
 TECH_ORDER = [
     "DF100",
     "AERO",
-<<<<<<< HEAD
     "VR3F100T",   # в КП отображается как TWG 1054-VR5U-100T
     "VRSD100VB",  # в КП отображается как TWG 1054-VR5D-100VB
-=======
     "VR3F100T",
     "ECO_ORGANIC_B",
     "ECO_ORGANIC_PLUS_B",
@@ -50,7 +48,6 @@ TECH_ORDER = [
     "ECO_STD",
     "ECO_STD_B",
     "SALT70",
->>>>>>> 77cd75c (Интегрирована логика подбора TWG и ЭКОБРАЙТ)
     "BB20",
     "PP20",
     "CARBON",
