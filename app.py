@@ -430,6 +430,33 @@ def apply_odor_selection(
 
 
 
+
+def apply_column_size_logic(selected: list[str], reasons: list[str], values: dict[str, Any], catalog: pd.DataFrame) -> None:
+    people = int(safe_float(values.get("people", 4), 4))
+
+    # Убираем старые типоразмеры колонн, чтобы не смешивались разные группы
+    column_codes = {
+        "FRP0844",
+        "FRP1044",
+        "FRP1054",
+        "FRP1252",
+        "FRP1354",
+    }
+    selected[:] = [code for code in selected if code not in column_codes]
+
+    if people <= 4:
+        for code in ["FRP0844", "FRP1044", "FRP1054"]:
+            add_code(selected, catalog, code)
+        reasons.append("До 4 проживающих включительно: подобраны колонны TWG FRP0844, TWG FRP1044, TWG FRP1054.")
+    elif 5 <= people <= 7:
+        for code in ["FRP1252", "FRP1354"]:
+            add_code(selected, catalog, code)
+        reasons.append("От 5 до 7 проживающих включительно: подобраны колонны TWG FRP1252 и TWG FRP1354.")
+    else:
+        for code in ["FRP1354"]:
+            add_code(selected, catalog, code)
+        reasons.append("Более 7 проживающих: требуется инженерная проверка производительности, предварительно выбрана TWG FRP1354.")
+
 def apply_engineering_rules(
     selected: list[str],
     reasons: list[str],
@@ -513,6 +540,8 @@ def apply_engineering_rules(
     if tds >= 800:
         add_code(selected, catalog, "OSMOS")
         reasons.append("Солесодержание повышено: рекомендован обратный осмос для питьевой воды.")
+
+    apply_column_size_logic(selected, reasons, values, catalog)
 
     add_code(selected, catalog, "BB20")
     add_code(selected, catalog, "PP20")
