@@ -642,6 +642,11 @@ def image_path(file_name: str) -> Path:
 
 
 def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict[str, Any], client_data: dict[str, Any]) -> None:
+    selected_df = selected_df.copy()
+    if "qty" not in selected_df.columns:
+        selected_df["qty"] = 1
+    selected_df["qty"] = pd.to_numeric(selected_df["qty"], errors="coerce").fillna(1).astype(int)
+
     st.markdown("---")
     st.title("Коммерческое предложение")
     st.markdown("### Система очистки воды для частного дома")
