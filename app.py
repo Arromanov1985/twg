@@ -475,12 +475,12 @@ def calculations_history_panel(current_user: dict):
         selected_label = st.selectbox(
             "Выберите расчёт для просмотра",
             list(calc_options.keys()),
-            key="history_calc_select",
+            key=f"history_calc_select_{current_user.get('id', 'admin')}",
         )
 
         selected_calc = calc_options[selected_label]
 
-        if st.button("Открыть расчёт", key="open_history_calc"):
+        if st.button("Открыть расчёт", key=f"open_history_calc_{current_user.get('id', 'admin')}"):
             st.session_state["opened_calculation"] = selected_calc
 
         opened = st.session_state.get("opened_calculation")
@@ -555,12 +555,12 @@ def calculations_history_panel(current_user: dict):
         selected_label = st.selectbox(
             "Выберите расчёт для просмотра",
             list(calc_options.keys()),
-            key="history_calc_select",
+            key=f"history_calc_select_{current_user.get('id', 'admin')}",
         )
 
         selected_calc = calc_options[selected_label]
 
-        if st.button("Открыть расчёт", key="open_history_calc"):
+        if st.button("Открыть расчёт", key=f"open_history_calc_{current_user.get('id', 'admin')}"):
             st.session_state["opened_calculation"] = selected_calc
 
         opened = st.session_state.get("opened_calculation")
