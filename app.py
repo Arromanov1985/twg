@@ -348,6 +348,57 @@ def admin_users_panel(current_user: dict):
         managers = sb.table("managers").select("id, full_name, phone, email, region, role, active, created_at").order("created_at", desc=True).execute().data or []
         st.dataframe(managers, width="stretch", hide_index=True)
 
+        st.subheader("Управление пользователем")
+
+        active_managers = managers or []
+
+        if active_managers:
+            manager_labels = {
+                f"{m.get('full_name', '')} | {m.get('email', '')} | {m.get('role', '')}": m
+                for m in active_managers
+            }
+
+            selected_manager_label = st.selectbox(
+                "Выберите пользователя",
+                list(manager_labels.keys()),
+                key="admin_selected_manager",
+            )
+
+            selected_manager = manager_labels[selected_manager_label]
+
+            c1, c2 = st.columns(2)
+
+            with c1:
+                new_password = st.text_input(
+                    "Новый пароль",
+                    type="password",
+                    key="admin_new_password",
+                )
+
+                if st.button("Сбросить пароль", key="admin_reset_password"):
+                    if not new_password:
+                        st.warning("Введите новый пароль.")
+                    else:
+                        sb.table("managers").update({
+                            "password": new_password
+                        }).eq("id", selected_manager["id"]).execute()
+                        st.success("Пароль обновлён.")
+
+            with c2:
+                st.warning("Удаление отключает пользователя, но сохраняет историю расчётов.")
+
+                if st.button("Удалить пользователя", key="admin_delete_user"):
+                    if selected_manager.get("role") == "admin":
+                        st.error("Администратора удалять нельзя.")
+                    else:
+                        sb.table("managers").update({
+                            "active": False
+                        }).eq("id", selected_manager["id"]).execute()
+                        st.success("Пользователь отключён.")
+                        st.rerun()
+        else:
+            st.info("Пользователей пока нет.")
+
 
 def build_analysis_files_uploader() -> list:
     st.subheader("Файлы анализа воды")
