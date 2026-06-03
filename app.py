@@ -282,20 +282,27 @@ def require_login():
     password = st.text_input("Пароль", type="password")
 
     if st.button("Войти", width="stretch"):
-        query = sb.table("managers").select("*").eq("email", email).eq("password", password).eq("active", True)
+        email_clean = email.strip().lower()
+        password_clean = password.strip()
+
+        query = sb.table("managers").select("*").eq("email", email_clean).eq("active", True)
         if login_type == "Админ":
             query = query.eq("role", "admin")
+
         result = query.execute()
         rows = result.data or []
 
-        if not rows:
+        user = rows[0] if rows else None
+        db_password = str(user.get("password", "")).strip() if user else ""
+
+        if not user or db_password != password_clean:
             st.error("Неверный логин или пароль.")
-            st.caption(f"Диагностика: email={email!r}, login_type={login_type!r}")
+            st.caption(f"Диагностика: email={email_clean!r}, login_type={login_type!r}, найден={bool(user)}")
             debug_rows = sb.table("managers").select("email, role, active").execute().data or []
             st.caption(f"Пользователи в базе: {debug_rows}")
             st.stop()
 
-        st.session_state["current_user"] = rows[0]
+        st.session_state["current_user"] = user
         st.rerun()
 
     st.stop()
