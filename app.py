@@ -800,6 +800,21 @@ def calculations_history_panel(current_user: dict):
             else:
                 st.info("Оборудование не сохранено.")
 
+            st.subheader("Ссылка на веб-КП")
+            base_url = "https://xtwwfwenhzukhsngtysoqg.streamlit.app"
+            kp_url = f"{base_url}/?kp_id={opened['id']}"
+            st.text_input("Ссылка для клиента", value=kp_url, key=f"kp_url_{opened['id']}")
+            st.link_button("Открыть веб-КП", kp_url, width="stretch")
+            st.components.v1.html(
+                f"""
+                <button onclick="navigator.clipboard.writeText('{kp_url}'); alert('Ссылка скопирована');"
+                    style="background:#005bbb;color:white;padding:10px 18px;border-radius:8px;border:none;font-weight:700;cursor:pointer;">
+                    Скопировать ссылку на КП
+                </button>
+                """,
+                height=55,
+            )
+
             st.subheader("Файлы анализа")
             files = sb.table("analysis_files").select("*").eq("calculation_id", opened["id"]).execute().data or []
             if files:
@@ -1568,7 +1583,119 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
     return selected_df, reasons
 
 
+
+def render_public_kp_page(kp_id: str) -> None:
+    sb = get_supabase_client()
+    result = sb.table("calculations").select(
+        "*, clients(company, client_name, phone, email, address), managers(full_name, phone, email)"
+    ).eq("id", kp_id).execute()
+
+    rows = result.data or []
+    if not rows:
+        st.error("KP not found")
+        return
+
+    calc = rows[0]
+    client = calc.get("clients") or {}
+    manager = calc.get("managers") or {}
+    water_data = calc.get("water_data") or {}
+    equipment_data = calc.get("equipment_data") or []
+
+    st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {display:none;}
+    [data-testid="collapsedControl"] {display:none;}
+    @media print {
+        button, iframe, [data-testid="stToolbar"] {display:none !important;}
+        .main .block-container {max-width:100% !important; padding:10mm !important;}
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.title("Коммерческое предложение")
+    st.subheader("Система очистки воды для частного дома")
+
+    st.components.v1.html(
+        """
+        <button onclick="window.parent.print()" style="background:#005bbb;color:white;padding:12px 22px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;">
+            Print / Save PDF
+        </button>
+        """,
+        height=60,
+    )
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("### Клиент")
+        st.write(client.get("company") or client.get("client_name") or "")
+        st.write(client.get("phone") or "")
+        st.write(client.get("email") or "")
+        st.write(client.get("address") or "")
+
+    with c2:
+        st.markdown("### Объект")
+        st.write(f"Проживающих: {water_data.get('people', '')}")
+        st.write(f"Регион: {water_data.get('region_subject', '')}")
+        st.write(f"ФО: {water_data.get('federal_district', '')}")
+
+    with c3:
+        st.markdown("### Стоимость")
+        st.metric("Итого", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
+
+    st.markdown("## Анализ воды")
+    water_rows = []
+    for k, v in water_data.items():
+        if k in {"product_line", "address"}:
+            continue
+        label = PARAMETER_NAMES.get(k, k)
+        value = v
+        if k == "odor_h2s":
+            try:
+                iv = int(v)
+                value = f"{ODOR_H2S_LABELS.get(iv, v)} ({iv})"
+            except Exception:
+                value = v
+        water_rows.append({"Параметр": label, "Значение": value})
+    st.dataframe(water_rows, width="stretch", hide_index=True)
+
+    st.markdown("## Комплектация")
+    if equipment_data:
+        equipment_df = pd.DataFrame(equipment_data)
+        if "stage" in equipment_df.columns:
+            equipment_df = equipment_df.drop(columns=["stage"])
+        equipment_df = equipment_df.rename(columns={
+            "qty": "Кол-во",
+            "code": "Артикул",
+            "name": "Наименование",
+            "retail_price": "Цена, руб.",
+            "retail_sum": "Сумма, руб.",
+            "description": "Назначение",
+        })
+        cols = ["Кол-во", "Артикул", "Наименование", "Цена, руб.", "Сумма, руб.", "Назначение"]
+        equipment_df = equipment_df[[c for c in cols if c in equipment_df.columns]]
+        st.dataframe(equipment_df, width="stretch", hide_index=True)
+
+    st.markdown("## Рекомендации по обслуживанию")
+    for item in [
+        "Проверять наличие таблетированной соли в солевом баке не реже 1 раза в 2-4 недели.",
+        "Не допускать полного опустошения солевого бака.",
+        "Заменять картриджи механической очистки по мере загрязнения.",
+        "Проводить сервисное обслуживание системы не реже 1 раза в год.",
+        "Контролировать давление воды до и после системы.",
+    ]:
+        st.write("- " + item)
+
+    st.markdown("## Контакты менеджера")
+    st.write(manager.get("full_name") or "")
+    st.write(manager.get("phone") or "")
+    st.write(manager.get("email") or "")
+
 def main() -> None:
+    kp_id = st.query_params.get("kp_id")
+    if kp_id:
+        render_public_kp_page(kp_id)
+        return
+
     st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.png"), width="stretch")
     st.sidebar.title("TerraWater Robot")
     st.sidebar.write("Подбор оборудования по анализу воды и формирование КП в HTML/PDF.")
