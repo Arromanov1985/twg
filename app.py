@@ -458,6 +458,166 @@ def calculations_history_panel(current_user: dict):
             })
         st.dataframe(view_rows, width="stretch", hide_index=True)
 
+        st.subheader("Открыть расчёт")
+
+        calc_options = {}
+        for row in rows:
+            client = row.get("clients") or {}
+            manager = row.get("managers") or {}
+            label = (
+                f"{str(row.get('created_at', ''))[:19]} | "
+                f"{client.get('company') or client.get('client_name') or 'Клиент'} | "
+                f"{manager.get('full_name') or ''} | "
+                f"Розница: {row.get('retail_total', 0)} ₽"
+            )
+            calc_options[label] = row
+
+        selected_label = st.selectbox(
+            "Выберите расчёт для просмотра",
+            list(calc_options.keys()),
+            key="history_calc_select",
+        )
+
+        selected_calc = calc_options[selected_label]
+
+        if st.button("Открыть расчёт", key="open_history_calc"):
+            st.session_state["opened_calculation"] = selected_calc
+
+        opened = st.session_state.get("opened_calculation")
+
+        if opened:
+            client = opened.get("clients") or {}
+            manager = opened.get("managers") or {}
+            water_data = opened.get("water_data") or {}
+            equipment_data = opened.get("equipment_data") or []
+
+            st.markdown("---")
+            st.subheader("Карточка расчёта")
+
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.markdown("**Клиент**")
+                st.write(client.get("company") or client.get("client_name") or "—")
+                st.write(client.get("phone") or "—")
+                st.write(client.get("email") or "—")
+                st.write(client.get("address") or "—")
+
+            with c2:
+                st.markdown("**Менеджер**")
+                st.write(manager.get("full_name") or "—")
+                st.write(manager.get("email") or "—")
+
+            with c3:
+                st.markdown("**Итоги**")
+                st.metric("Розница", f"{float(opened.get('retail_total') or 0):,.0f} ₽".replace(",", " "))
+                st.metric("Партнер", f"{float(opened.get('partner_total') or 0):,.0f} ₽".replace(",", " "))
+                st.metric("Выгода", f"{float(opened.get('benefit_total') or 0):,.0f} ₽".replace(",", " "))
+
+            st.subheader("Анализ воды")
+            if water_data:
+                water_rows = [{"Параметр": k, "Значение": v} for k, v in water_data.items()]
+                st.dataframe(water_rows, width="stretch", hide_index=True)
+            else:
+                st.info("Данные анализа не сохранены.")
+
+            st.subheader("Оборудование")
+            if equipment_data:
+                st.dataframe(equipment_data, width="stretch", hide_index=True)
+            else:
+                st.info("Оборудование не сохранено.")
+
+            st.subheader("Файлы анализа")
+            files = sb.table("analysis_files").select("*").eq("calculation_id", opened["id"]).execute().data or []
+            if files:
+                for f in files:
+                    if f.get("file_url"):
+                        st.markdown(f"- [{f.get('file_name')}]({f.get('file_url')})")
+                    else:
+                        st.markdown(f"- {f.get('file_name')}")
+            else:
+                st.info("Файлы анализа не загружены.")
+
+        st.subheader("Открыть расчёт")
+
+        calc_options = {}
+        for row in rows:
+            client = row.get("clients") or {}
+            manager = row.get("managers") or {}
+            label = (
+                f"{str(row.get('created_at', ''))[:19]} | "
+                f"{client.get('company') or client.get('client_name') or 'Клиент'} | "
+                f"{manager.get('full_name') or ''} | "
+                f"Розница: {row.get('retail_total', 0)} ₽"
+            )
+            calc_options[label] = row
+
+        selected_label = st.selectbox(
+            "Выберите расчёт для просмотра",
+            list(calc_options.keys()),
+            key="history_calc_select",
+        )
+
+        selected_calc = calc_options[selected_label]
+
+        if st.button("Открыть расчёт", key="open_history_calc"):
+            st.session_state["opened_calculation"] = selected_calc
+
+        opened = st.session_state.get("opened_calculation")
+
+        if opened:
+            client = opened.get("clients") or {}
+            manager = opened.get("managers") or {}
+            water_data = opened.get("water_data") or {}
+            equipment_data = opened.get("equipment_data") or []
+
+            st.markdown("---")
+            st.subheader("Карточка расчёта")
+
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.markdown("**Клиент**")
+                st.write(client.get("company") or client.get("client_name") or "—")
+                st.write(client.get("phone") or "—")
+                st.write(client.get("email") or "—")
+                st.write(client.get("address") or "—")
+
+            with c2:
+                st.markdown("**Менеджер**")
+                st.write(manager.get("full_name") or "—")
+                st.write(manager.get("email") or "—")
+
+            with c3:
+                st.markdown("**Итоги**")
+                st.metric("Розница", f"{float(opened.get('retail_total') or 0):,.0f} ₽".replace(",", " "))
+                st.metric("Партнер", f"{float(opened.get('partner_total') or 0):,.0f} ₽".replace(",", " "))
+                st.metric("Выгода", f"{float(opened.get('benefit_total') or 0):,.0f} ₽".replace(",", " "))
+
+            st.subheader("Анализ воды")
+            if water_data:
+                water_rows = [{"Параметр": k, "Значение": v} for k, v in water_data.items()]
+                st.dataframe(water_rows, width="stretch", hide_index=True)
+            else:
+                st.info("Данные анализа не сохранены.")
+
+            st.subheader("Оборудование")
+            if equipment_data:
+                st.dataframe(equipment_data, width="stretch", hide_index=True)
+            else:
+                st.info("Оборудование не сохранено.")
+
+            st.subheader("Файлы анализа")
+            files = sb.table("analysis_files").select("*").eq("calculation_id", opened["id"]).execute().data or []
+            if files:
+                for f in files:
+                    if f.get("file_url"):
+                        st.markdown(f"- [{f.get('file_name')}]({f.get('file_url')})")
+                    else:
+                        st.markdown(f"- {f.get('file_name')}")
+            else:
+                st.info("Файлы анализа не загружены.")
+
 def read_excel(path: Path) -> pd.DataFrame:
     if not path.exists():
         st.error(f"Не найден файл: {path}")
