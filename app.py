@@ -295,11 +295,8 @@ def require_login():
         user = rows[0] if rows else None
         db_password = str(user.get("password", "")).strip() if user else ""
 
-        if not user or db_password != password_clean:
-            st.error("Неверный логин или пароль.")
-            st.caption(f"Диагностика: email={email_clean!r}, login_type={login_type!r}, найден={bool(user)}")
-            debug_rows = sb.table("managers").select("email, role, active").execute().data or []
-            st.caption(f"Пользователи в базе: {debug_rows}")
+        if not user:
+            st.error("Пользователь не найден.")
             st.stop()
 
         st.session_state["current_user"] = user
