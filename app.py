@@ -1412,8 +1412,24 @@ def main() -> None:
     if st.sidebar.button("Выйти"):
         st.session_state.pop("current_user", None)
         st.rerun()
-    admin_users_panel(current_user)
-    calculations_history_panel(current_user)
+
+    menu_options = ["Подбор КП", "История расчётов"]
+    if current_user.get("role") == "admin":
+        menu_options.append("Админ-панель")
+
+    current_section = st.sidebar.radio(
+        "Раздел",
+        menu_options,
+        key="main_section",
+    )
+
+    if current_section == "Админ-панель":
+        admin_users_panel(current_user)
+        return
+
+    if current_section == "История расчётов":
+        calculations_history_panel(current_user)
+        return
 
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
