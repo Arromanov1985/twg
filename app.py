@@ -7,6 +7,7 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
+from supabase import create_client
 from src.kp_generator import build_kp_context, render_kp_html, html_to_pdf_bytes
 
 BASE_DIR = Path(__file__).parent
@@ -255,6 +256,180 @@ def ensure_price_columns(catalog: pd.DataFrame) -> pd.DataFrame:
 
     return catalog
 
+
+
+@st.cache_resource
+def get_supabase_client():
+    url = st.secrets.get("SUPABASE_URL", "")
+    key = st.secrets.get("SUPABASE_KEY", "")
+    if not url or not key:
+        return None
+    return create_client(url, key)
+
+
+def require_login():
+    sb = get_supabase_client()
+    if sb is None:
+        st.error("Supabase не настроен. Добавьте SUPABASE_URL и SUPABASE_KEY в Streamlit Secrets.")
+        st.stop()
+
+    if "current_user" in st.session_state:
+        return st.session_state["current_user"]
+
+    st.title("Вход в TerraWater Robot")
+    login_type = st.radio("Тип входа", ["Сотрудник", "Админ"], horizontal=True)
+    email = st.text_input("Почта / логин")
+    password = st.text_input("Пароль", type="password")
+
+    if st.button("Войти", width="stretch"):
+        query = sb.table("managers").select("*").eq("email", email).eq("password", password).eq("active", True)
+        if login_type == "Админ":
+            query = query.eq("role", "admin")
+        rows = query.execute().data or []
+        if not rows:
+            st.error("Неверный логин или пароль.")
+            st.stop()
+        st.session_state["current_user"] = rows[0]
+        st.rerun()
+
+    st.stop()
+
+
+def admin_users_panel(current_user: dict):
+    if current_user.get("role") != "admin":
+        return
+    sb = get_supabase_client()
+    with st.expander("Админ-панель: менеджеры"):
+        st.subheader("Добавить менеджера")
+        c1, c2 = st.columns(2)
+        with c1:
+            full_name = st.text_input("ФИО менеджера")
+            phone = st.text_input("Телефон менеджера")
+        with c2:
+            email = st.text_input("Почта менеджера")
+            password = st.text_input("Пароль менеджера", type="password")
+        role = st.selectbox("Роль", ["manager", "admin"])
+        if st.button("Добавить пользователя"):
+            if not full_name or not email or not password:
+                st.warning("Заполните ФИО, почту и пароль.")
+            else:
+                sb.table("managers").insert({
+                    "full_name": full_name,
+                    "phone": phone,
+                    "email": email,
+                    "password": password,
+                    "role": role,
+                    "active": True,
+                }).execute()
+                st.success("Пользователь добавлен.")
+
+        managers = sb.table("managers").select("id, full_name, phone, email, role, active, created_at").order("created_at", desc=True).execute().data or []
+        st.dataframe(managers, width="stretch", hide_index=True)
+
+
+def build_analysis_files_uploader() -> list:
+    st.subheader("Файлы анализа воды")
+    files = st.file_uploader(
+        "Загрузите до 5 файлов анализа воды: PDF, PNG, JPG",
+        type=["pdf", "png", "jpg", "jpeg"],
+        accept_multiple_files=True,
+    ) or []
+    if len(files) > 5:
+        st.warning("Можно загрузить максимум 5 файлов. Будут сохранены первые 5.")
+        files = files[:5]
+    return files
+
+
+def selected_df_to_records(selected_df: pd.DataFrame) -> list[dict]:
+    records = []
+    for _, row in selected_df.iterrows():
+        qty = int(float(row.get("qty", 1) or 1))
+        retail = float(row.get("retail_price", row.get("price", 0)) or 0)
+        partner = float(row.get("partner_price", row.get("Партнер", retail)) or retail)
+        records.append({
+            "stage": str(row.get("stage", "")),
+            "code": str(row.get("code", "")),
+            "name": str(row.get("name", "")),
+            "qty": qty,
+            "retail_price": retail,
+            "partner_price": partner,
+            "retail_sum": retail * qty,
+            "partner_sum": partner * qty,
+            "benefit_sum": (retail - partner) * qty,
+        })
+    return records
+
+
+def save_calculation_block(current_user: dict, client_data: dict, values: dict, selected_df: pd.DataFrame, uploaded_files: list):
+    sb = get_supabase_client()
+    st.subheader("Сохранение расчёта")
+    if selected_df.empty:
+        st.info("Сначала выберите оборудование по стадиям.")
+        return
+
+    retail_total = float((selected_df["qty"] * selected_df["price"]).sum()) if {"qty", "price"}.issubset(selected_df.columns) else 0
+    partner_total = float((selected_df["qty"] * selected_df["partner_price"]).sum()) if {"qty", "partner_price"}.issubset(selected_df.columns) else retail_total
+    benefit_total = retail_total - partner_total
+
+    if st.button("Сохранить расчёт в базу", width="stretch"):
+        client_result = sb.table("clients").insert({
+            "manager_id": current_user["id"],
+            "company": client_data.get("company") or client_data.get("client_name"),
+            "client_name": client_data.get("client_name"),
+            "phone": client_data.get("phone"),
+            "email": client_data.get("email"),
+            "address": client_data.get("address"),
+        }).execute()
+        client_id = client_result.data[0]["id"]
+
+        calc_result = sb.table("calculations").insert({
+            "client_id": client_id,
+            "manager_id": current_user["id"],
+            "analysis_number": values.get("analysis_number"),
+            "analysis_date": values.get("analysis_date") or None,
+            "retail_total": retail_total,
+            "partner_total": partner_total,
+            "benefit_total": benefit_total,
+            "water_data": values,
+            "equipment_data": selected_df_to_records(selected_df),
+        }).execute()
+        calculation_id = calc_result.data[0]["id"]
+
+        for file in uploaded_files[:5]:
+            sb.table("analysis_files").insert({
+                "calculation_id": calculation_id,
+                "file_name": file.name,
+                "file_url": "",
+                "file_type": file.type,
+            }).execute()
+
+        st.success("Расчёт сохранён.")
+
+
+def calculations_history_panel(current_user: dict):
+    sb = get_supabase_client()
+    with st.expander("История расчётов"):
+        query = sb.table("calculations").select("*, clients(company, client_name, phone, email, address), managers(full_name, email)").order("created_at", desc=True)
+        if current_user.get("role") != "admin":
+            query = query.eq("manager_id", current_user["id"])
+        rows = query.execute().data or []
+        if not rows:
+            st.info("Расчётов пока нет.")
+            return
+        view_rows = []
+        for row in rows:
+            client = row.get("clients") or {}
+            manager = row.get("managers") or {}
+            view_rows.append({
+                "Дата": row.get("created_at"),
+                "Клиент": client.get("company") or client.get("client_name"),
+                "Менеджер": manager.get("full_name"),
+                "Анализ": row.get("analysis_number"),
+                "Розница": row.get("retail_total"),
+                "Партнер": row.get("partner_total"),
+                "Выгода": row.get("benefit_total"),
+            })
+        st.dataframe(view_rows, width="stretch", hide_index=True)
 
 def read_excel(path: Path) -> pd.DataFrame:
     if not path.exists():
@@ -958,11 +1133,20 @@ def main() -> None:
     st.sidebar.title("TerraWater Robot")
     st.sidebar.write("Подбор оборудования по анализу воды и формирование КП в HTML/PDF.")
 
+    current_user = require_login()
+    st.sidebar.success(f"Вход: {current_user.get('full_name', '')}")
+    if st.sidebar.button("Выйти"):
+        st.session_state.pop("current_user", None)
+        st.rerun()
+    admin_users_panel(current_user)
+    calculations_history_panel(current_user)
+
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
     values = build_input_form(analysis)
     values = build_resin_line_form(values)
     values = build_odor_form(values)
+    uploaded_analysis_files = build_analysis_files_uploader()
     selected_df, reasons = build_stage_selection(catalog)
 
     if selected_df.empty:
