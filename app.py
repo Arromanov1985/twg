@@ -67,6 +67,13 @@ ODOR_H2S_LABELS = {
 }
 
 PARAMETER_NAMES = {
+    "odor_score": "Запах (сероводород)",
+    "permanganate": "Перманганатная окисляемость, мгО₂/л",
+    "product_line": "Линейка оборудования",
+    "analysis_date": "Дата анализа",
+    "analysis_number": "Номер анализа",
+    "odor_type": "Характер запаха",
+    "odor_level": "Интенсивность запаха",
     "ph": "pH",
     "iron": "Железо, мг/л",
     "manganese": "Марганец, мг/л",
