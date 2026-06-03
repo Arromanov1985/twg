@@ -319,10 +319,6 @@ def admin_users_panel(current_user: dict):
     if current_user.get("role") != "admin":
         return
 
-    if st.session_state.get("_admin_users_panel_rendered"):
-        return
-    st.session_state["_admin_users_panel_rendered"] = True
-
     sb = get_supabase_client()
 
     with st.expander("Админ-панель: менеджеры"):
