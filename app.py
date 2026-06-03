@@ -1320,36 +1320,74 @@ def admin_panel(catalog: pd.DataFrame, rules: pd.DataFrame) -> None:
 
 
 def build_client_form() -> dict[str, Any]:
+    client_data: dict[str, Any] = {}
+
     st.subheader("Данные объекта")
-    o1, o2, o3 = st.columns(3)
-    with o1:
-        object_type = st.text_input("Тип объекта", "Частный дом")
-    with o2:
-        water_source = st.text_input("Источник воды", "Скважина")
-    with o3:
-        address = st.text_input("Адрес/объект для КП", "")
+
+    current_user = st.session_state.get("current_user", {})
+    manager_region = current_user.get("region") or ""
+
+    federal_index = FEDERAL_DISTRICTS.index(manager_region) if manager_region in FEDERAL_DISTRICTS else 0
+
+    row1 = st.columns(4)
+
+    with row1[0]:
+        client_data["object_type"] = st.text_input("Тип объекта", "Частный дом")
+
+    with row1[1]:
+        client_data["water_source"] = st.text_input("Источник воды", "Скважина")
+
+    with row1[2]:
+        client_data["people"] = st.number_input(
+            "Проживающих, чел.",
+            min_value=1,
+            max_value=50,
+            value=4,
+            step=1,
+        )
+
+    with row1[3]:
+        client_data["federal_district"] = st.selectbox(
+            "Федеральный округ",
+            FEDERAL_DISTRICTS,
+            index=federal_index,
+            key="client_federal_district",
+        )
+
+    row2 = st.columns(2)
+
+    with row2[0]:
+        client_data["region_subject"] = st.selectbox(
+            "Область / регион РФ",
+            RUSSIAN_REGIONS,
+            key="client_region_subject",
+        )
+
+    with row2[1]:
+        client_data["address"] = st.text_input("Адрес объекта", "")
 
     st.subheader("Контакты")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        company = st.text_input("Компания", "Частный клиент")
-    with c2:
-        manager = st.text_input("Менеджер", "TerraWater Group")
-    with c3:
-        phone = st.text_input("Телефон", "")
-    with c4:
-        email = st.text_input("Почта", "")
 
-    return {
-        "client_name": company,
-        "company": company,
-        "object_type": object_type,
-        "water_source": water_source,
-        "manager": manager,
-        "phone": phone,
-        "email": email,
-        "address": address,
-    }
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        client_data["client_name"] = st.text_input("Компания", "Частный клиент")
+
+    with c2:
+        client_data["manager"] = st.text_input(
+            "Менеджер",
+            current_user.get("full_name") or "TerraWater Group",
+        )
+
+    with c3:
+        client_data["phone"] = st.text_input("Телефон", "")
+
+    with c4:
+        client_data["email"] = st.text_input("Почта", "")
+
+    client_data["company"] = client_data["client_name"]
+
+    return client_data
 
 
 def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[str, Any], client_data: dict[str, Any], analysis: pd.DataFrame) -> None:
