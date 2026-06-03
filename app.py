@@ -1458,14 +1458,6 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
         )
         client_html = render_kp_html(client_context, BASE_DIR / "templates" / "kp_template.html")
 
-        st.download_button(
-            "Скачать КП для клиента HTML",
-            data=client_html.encode("utf-8"),
-            file_name="KP_TerraWater_client.html",
-            mime="text/html",
-            width="stretch",
-        )
-
         try:
             client_pdf = html_to_pdf_bytes(client_html, base_dir=BASE_DIR)
             st.download_button(
@@ -1476,7 +1468,7 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
                 width="stretch",
             )
         except Exception as exc:
-            st.warning("PDF для клиента не сформировался. Скачайте HTML.")
+            st.warning("PDF для клиента не сформировался.")
             st.caption(str(exc))
 
     with col2:
@@ -1492,14 +1484,6 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
         )
         partner_html = render_kp_html(partner_context, BASE_DIR / "templates" / "kp_template.html")
 
-        st.download_button(
-            "Скачать КП для партнера HTML",
-            data=partner_html.encode("utf-8"),
-            file_name="KP_TerraWater_partner.html",
-            mime="text/html",
-            width="stretch",
-        )
-
         try:
             partner_pdf = html_to_pdf_bytes(partner_html, base_dir=BASE_DIR)
             st.download_button(
@@ -1510,7 +1494,7 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
                 width="stretch",
             )
         except Exception as exc:
-            st.warning("PDF для партнера не сформировался. Скачайте HTML.")
+            st.warning("PDF для партнера не сформировался.")
             st.caption(str(exc))
 
     if st.checkbox("Показать HTML-превью клиентского КП"):

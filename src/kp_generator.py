@@ -121,13 +121,13 @@ def render_kp_html(context: dict[str, Any], template_path: Path) -> str:
 
 
 def html_to_pdf_bytes(html: str, base_dir: Path | None = None) -> bytes:
-    # xhtml2pdf converts the HTML template to a PDF without external services.
-    # The HTML uses embedded data-uri images, so the PDF can be generated locally.
-    from io import BytesIO
+    # WeasyPrint лучше переносит таблицы, страницы и CSS для PDF.
+    try:
+        from weasyprint import HTML
+    except Exception as exc:
+        raise RuntimeError(
+            "WeasyPrint не установлен. Добавьте weasyprint в requirements.txt."
+        ) from exc
 
-    output = BytesIO()
-    from xhtml2pdf import pisa
-    status = pisa.CreatePDF(src=html, dest=output, encoding="utf-8")
-    if status.err:
-        raise RuntimeError("xhtml2pdf не смог сформировать PDF. Скачайте HTML и распечатайте его в PDF через браузер.")
-    return output.getvalue()
+    base_url = str(base_dir) if base_dir else None
+    return HTML(string=html, base_url=base_url).write_pdf()
