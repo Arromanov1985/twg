@@ -707,6 +707,13 @@ def calculations_history_panel(current_user: dict):
             if water_data:
                 water_rows = []
                 for k, v in water_data.items():
+
+                    if k in {
+                        "product_line",
+                        "analysis_date",
+                        "analysis_number"
+                    }:
+                        continue
                     label = PARAMETER_NAMES.get(k, k)
                     value = v
                     if k == "odor_h2s":
