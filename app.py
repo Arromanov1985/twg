@@ -1380,10 +1380,16 @@ def build_client_form() -> dict[str, Any]:
         )
 
     with c3:
-        client_data["phone"] = st.text_input("Телефон", "")
+        client_data["phone"] = st.text_input(
+            "Телефон",
+            current_user.get("phone") or "",
+        )
 
     with c4:
-        client_data["email"] = st.text_input("Почта", "")
+        client_data["email"] = st.text_input(
+            "Почта",
+            current_user.get("email") or "",
+        )
 
     client_data["company"] = client_data["client_name"]
 
