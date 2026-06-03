@@ -57,7 +57,17 @@ TECH_ORDER = [
 ]
 
 
-STAGE_NAMES = {
+FEDERAL_DISTRICTS = [
+    "Центральный федеральный округ",
+    "Северо-Западный федеральный округ",
+    "Южный федеральный округ",
+    "Северо-Кавказский федеральный округ",
+    "Приволжский федеральный округ",
+    "Уральский федеральный округ",
+    "Сибирский федеральный округ",
+    "Дальневосточный федеральный округ",
+]
+\nSTAGE_NAMES = {
     1: "Механическая очистка",
     2: "Аэрация",
     3: "Обезжелезивание",
@@ -318,6 +328,7 @@ def admin_users_panel(current_user: dict):
         with c2:
             email = st.text_input("Почта менеджера")
             password = st.text_input("Пароль менеджера", type="password")
+        region = st.selectbox("Регион / федеральный округ", FEDERAL_DISTRICTS)
         role = st.selectbox("Роль", ["manager", "admin"])
         if st.button("Добавить пользователя"):
             if not full_name or not email or not password:
@@ -328,12 +339,13 @@ def admin_users_panel(current_user: dict):
                     "phone": phone,
                     "email": email,
                     "password": password,
+                    "region": region,
                     "role": role,
                     "active": True,
                 }).execute()
                 st.success("Пользователь добавлен.")
 
-        managers = sb.table("managers").select("id, full_name, phone, email, role, active, created_at").order("created_at", desc=True).execute().data or []
+        managers = sb.table("managers").select("id, full_name, phone, email, region, role, active, created_at").order("created_at", desc=True).execute().data or []
         st.dataframe(managers, width="stretch", hide_index=True)
 
 
