@@ -1514,13 +1514,13 @@ def main() -> None:
     client_data = build_client_form()
     values = build_input_form(analysis)
     values = build_resin_line_form(values)
-    values = build_odor_form(values)
     values["odor_h2s"] = st.selectbox(
         "Запах (сероводород)",
         [1, 2, 3, 4, 5],
         index=1,
         format_func=lambda x: f"{x} — {ODOR_H2S_LABELS[x]}",
     )
+    values = build_odor_form(values)
     uploaded_analysis_files = build_analysis_files_uploader()
     selected_df, reasons = build_stage_selection(catalog)
 
