@@ -396,10 +396,27 @@ def save_calculation_block(current_user: dict, client_data: dict, values: dict, 
         calculation_id = calc_result.data[0]["id"]
 
         for file in uploaded_files[:5]:
+            safe_name = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in file.name)
+            storage_path = f"{calculation_id}/{safe_name}"
+
+            try:
+                sb.storage.from_("analysis-files").upload(
+                    storage_path,
+                    file.getvalue(),
+                    {
+                        "content-type": file.type,
+                        "upsert": "true",
+                    },
+                )
+                file_url = sb.storage.from_("analysis-files").get_public_url(storage_path)
+            except Exception as upload_exc:
+                file_url = ""
+                st.warning(f"Файл {file.name} не загружен в Storage: {upload_exc}")
+
             sb.table("analysis_files").insert({
                 "calculation_id": calculation_id,
                 "file_name": file.name,
-                "file_url": "",
+                "file_url": file_url,
                 "file_type": file.type,
             }).execute()
 
