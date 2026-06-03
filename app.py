@@ -366,6 +366,69 @@ def admin_users_panel(current_user: dict):
 
             selected_manager = manager_labels[selected_manager_label]
 
+            st.markdown("### Редактировать данные пользователя")
+
+            e1, e2 = st.columns(2)
+            with e1:
+                edit_full_name = st.text_input(
+                    "ФИО",
+                    value=selected_manager.get("full_name") or "",
+                    key="edit_manager_full_name",
+                )
+                edit_phone = st.text_input(
+                    "Телефон",
+                    value=selected_manager.get("phone") or "",
+                    key="edit_manager_phone",
+                )
+                edit_email = st.text_input(
+                    "Почта",
+                    value=selected_manager.get("email") or "",
+                    key="edit_manager_email",
+                )
+
+            with e2:
+                current_region = selected_manager.get("region") or FEDERAL_DISTRICTS[0]
+                region_index = FEDERAL_DISTRICTS.index(current_region) if current_region in FEDERAL_DISTRICTS else 0
+
+                edit_region = st.selectbox(
+                    "Регион / федеральный округ",
+                    FEDERAL_DISTRICTS,
+                    index=region_index,
+                    key="edit_manager_region",
+                )
+
+                current_role = selected_manager.get("role") or "manager"
+                role_options = ["manager", "admin"]
+                role_index = role_options.index(current_role) if current_role in role_options else 0
+
+                edit_role = st.selectbox(
+                    "Роль",
+                    role_options,
+                    index=role_index,
+                    key="edit_manager_role",
+                )
+
+                edit_active = st.checkbox(
+                    "Активен",
+                    value=bool(selected_manager.get("active", True)),
+                    key="edit_manager_active",
+                )
+
+            if st.button("Сохранить изменения пользователя", key="admin_save_user_changes"):
+                sb.table("managers").update({
+                    "full_name": edit_full_name,
+                    "phone": edit_phone,
+                    "email": edit_email,
+                    "region": edit_region,
+                    "role": edit_role,
+                    "active": edit_active,
+                }).eq("id", selected_manager["id"]).execute()
+
+                st.success("Данные пользователя обновлены.")
+                st.rerun()
+
+            st.markdown("### Пароль и отключение")
+
             c1, c2 = st.columns(2)
 
             with c1:
