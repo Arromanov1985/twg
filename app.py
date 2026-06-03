@@ -57,6 +57,29 @@ TECH_ORDER = [
 ]
 
 
+
+ODOR_H2S_LABELS = {
+    1: "Отсутствует",
+    2: "Норма",
+    3: "Слабый",
+    4: "Выраженный",
+    5: "Сильный",
+}
+
+PARAMETER_NAMES = {
+    "ph": "pH",
+    "iron": "Железо, мг/л",
+    "manganese": "Марганец, мг/л",
+    "hardness": "Жесткость, мг-экв/л",
+    "tds": "Минерализация (TDS), мг/л",
+    "flow_peak": "Пиковый расход, м³/ч",
+    "people": "Количество пользователей",
+    "bacteria": "Бактериология",
+    "odor_h2s": "Запах (сероводород)",
+    "odor_type": "Тип запаха",
+    "odor_level": "Интенсивность запаха",
+}
+
 FEDERAL_DISTRICTS = [
     "Центральный федеральный округ",
     "Северо-Западный федеральный округ",
@@ -675,8 +698,20 @@ def calculations_history_panel(current_user: dict):
 
             st.subheader("Анализ воды")
             if water_data:
+                water_rows = []
+                for k, v in water_data.items():
+                    label = PARAMETER_NAMES.get(k, k)
+                    value = v
+                    if k == "odor_h2s":
+                        try:
+                            iv = int(v)
+                            value = f"{ODOR_H2S_LABELS.get(iv, v)} ({iv})"
+                        except Exception:
+                            value = v
+                    water_rows.append({"Параметр": label, "Значение": value})
+
                 st.dataframe(
-                    [{"Параметр": k, "Значение": v} for k, v in water_data.items()],
+                    water_rows,
                     width="stretch",
                     hide_index=True,
                 )
@@ -925,7 +960,7 @@ def apply_engineering_rules(
     manganese = get_value(values, ["manganese", "mn", "марганец"])
     hardness = get_value(values, ["hardness", "жесткость", "hard"])
     oxid = get_value(values, ["permanganate", "oxidizability", "permanganate_oxidizability", "окисляемость"])
-    h2s = get_value(values, ["h2s", "hydrogen_sulfide", "сероводород"])
+    h2s = get_value(values, ["odor_h2s", "hydrogen_sulfide", "сероводород"])
     ph = get_value(values, ["ph", "pH"], default=7.0)
     tds = get_value(values, ["tds", "salt", "солесодержание"])
     odor_score = int(values.get("odor_score", 0) or 0)
@@ -1432,6 +1467,12 @@ def main() -> None:
     values = build_input_form(analysis)
     values = build_resin_line_form(values)
     values = build_odor_form(values)
+    values["odor_h2s"] = st.selectbox(
+        "Запах (сероводород)",
+        [1, 2, 3, 4, 5],
+        index=1,
+        format_func=lambda x: f"{x} — {ODOR_H2S_LABELS[x]}",
+    )
     uploaded_analysis_files = build_analysis_files_uploader()
     selected_df, reasons = build_stage_selection(catalog)
 
