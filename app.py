@@ -318,213 +318,162 @@ def require_login():
 def admin_users_panel(current_user: dict):
     if current_user.get("role") != "admin":
         return
+
+    if st.session_state.get("_admin_users_panel_rendered"):
+        return
+    st.session_state["_admin_users_panel_rendered"] = True
+
     sb = get_supabase_client()
+
     with st.expander("Админ-панель: менеджеры"):
         st.subheader("Добавить менеджера")
+
         c1, c2 = st.columns(2)
         with c1:
-            full_name = st.text_input("ФИО менеджера")
-            phone = st.text_input("Телефон менеджера")
+            full_name = st.text_input("ФИО менеджера", key="add_manager_full_name")
+            phone = st.text_input("Телефон менеджера", key="add_manager_phone")
         with c2:
-            email = st.text_input("Почта менеджера")
-            password = st.text_input("Пароль менеджера", type="password")
-        region = st.selectbox("Регион / федеральный округ", FEDERAL_DISTRICTS)
-        role = st.selectbox("Роль", ["manager", "admin"])
-        if st.button("Добавить пользователя"):
+            email = st.text_input("Почта менеджера", key="add_manager_email")
+            password = st.text_input("Пароль менеджера", type="password", key="add_manager_password")
+
+        region = st.selectbox("Регион / федеральный округ", FEDERAL_DISTRICTS, key="add_manager_region")
+        role = st.selectbox("Роль", ["manager", "admin"], key="add_manager_role")
+
+        if st.button("Добавить пользователя", key="add_manager_button"):
             if not full_name or not email or not password:
                 st.warning("Заполните ФИО, почту и пароль.")
             else:
                 sb.table("managers").insert({
                     "full_name": full_name,
                     "phone": phone,
-                    "email": email,
+                    "email": email.strip().lower(),
                     "password": password,
                     "region": region,
                     "role": role,
                     "active": True,
                 }).execute()
                 st.success("Пользователь добавлен.")
+                st.rerun()
 
-        managers = sb.table("managers").select("id, full_name, phone, email, region, role, active, created_at").order("created_at", desc=True).execute().data or []
+        managers = sb.table("managers").select(
+            "id, full_name, phone, email, region, role, active, created_at"
+        ).order("created_at", desc=True).execute().data or []
+
+        st.subheader("Список пользователей")
         st.dataframe(managers, width="stretch", hide_index=True)
+
+        if not managers:
+            st.info("Пользователей пока нет.")
+            return
 
         st.subheader("Управление пользователем")
 
-        active_managers = managers or []
+        manager_labels = {
+            f"{m.get('full_name', '')} | {m.get('email', '')} | {m.get('role', '')}": m
+            for m in managers
+        }
 
-        if active_managers:
-            manager_labels = {
-                f"{m.get('full_name', '')} | {m.get('email', '')} | {m.get('role', '')}": m
-                for m in active_managers
-            }
+        selected_manager_label = st.selectbox(
+            "Выберите пользователя",
+            list(manager_labels.keys()),
+            key="admin_selected_manager_single",
+        )
 
-            selected_manager_label = st.selectbox(
-                "Выберите пользователя",
-                list(manager_labels.keys()),
-                key="admin_selected_manager",
+        selected_manager = manager_labels[selected_manager_label]
+        user_key = str(selected_manager.get("id", "user")).replace("-", "_")
+
+        st.markdown("### Редактировать данные пользователя")
+
+        e1, e2 = st.columns(2)
+        with e1:
+            edit_full_name = st.text_input(
+                "ФИО",
+                value=selected_manager.get("full_name") or "",
+                key=f"edit_full_name_{user_key}",
+            )
+            edit_phone = st.text_input(
+                "Телефон",
+                value=selected_manager.get("phone") or "",
+                key=f"edit_phone_{user_key}",
+            )
+            edit_email = st.text_input(
+                "Почта",
+                value=selected_manager.get("email") or "",
+                key=f"edit_email_{user_key}",
             )
 
-            selected_manager = manager_labels[selected_manager_label]
-            user_key = str(selected_manager.get("id", "user"))
+        with e2:
+            current_region = selected_manager.get("region") or FEDERAL_DISTRICTS[0]
+            region_index = FEDERAL_DISTRICTS.index(current_region) if current_region in FEDERAL_DISTRICTS else 0
 
-            st.markdown("### Редактировать данные пользователя")
+            edit_region = st.selectbox(
+                "Регион / федеральный округ",
+                FEDERAL_DISTRICTS,
+                index=region_index,
+                key=f"edit_region_{user_key}",
+            )
 
-            e1, e2 = st.columns(2)
-            with e1:
-                edit_full_name = st.text_input(
-                    "ФИО",
-                    value=selected_manager.get("full_name") or "",
-                    key=f"edit_manager_full_name_{user_key}",
-                )
-                edit_phone = st.text_input(
-                    "Телефон",
-                    value=selected_manager.get("phone") or "",
-                    key=f"edit_manager_phone_{user_key}",
-                )
-                edit_email = st.text_input(
-                    "Почта",
-                    value=selected_manager.get("email") or "",
-                    key=f"edit_manager_email_{user_key}",
-                )
+            role_options = ["manager", "admin"]
+            current_role = selected_manager.get("role") or "manager"
+            role_index = role_options.index(current_role) if current_role in role_options else 0
 
-            with e2:
-                current_region = selected_manager.get("region") or FEDERAL_DISTRICTS[0]
-                region_index = FEDERAL_DISTRICTS.index(current_region) if current_region in FEDERAL_DISTRICTS else 0
+            edit_role = st.selectbox(
+                "Роль",
+                role_options,
+                index=role_index,
+                key=f"edit_role_{user_key}",
+            )
 
-                edit_region = st.selectbox(
-                    "Регион / федеральный округ",
-                    FEDERAL_DISTRICTS,
-                    index=region_index,
-                    key=f"edit_manager_region_{user_key}",
-                )
+            edit_active = st.checkbox(
+                "Активен",
+                value=bool(selected_manager.get("active", True)),
+                key=f"edit_active_{user_key}",
+            )
 
-                current_role = selected_manager.get("role") or "manager"
-                role_options = ["manager", "admin"]
-                role_index = role_options.index(current_role) if current_role in role_options else 0
+        if st.button("Сохранить изменения пользователя", key=f"save_user_{user_key}"):
+            sb.table("managers").update({
+                "full_name": edit_full_name,
+                "phone": edit_phone,
+                "email": edit_email.strip().lower(),
+                "region": edit_region,
+                "role": edit_role,
+                "active": edit_active,
+            }).eq("id", selected_manager["id"]).execute()
+            st.success("Данные пользователя обновлены.")
+            st.rerun()
 
-                edit_role = st.selectbox(
-                    "Роль",
-                    role_options,
-                    index=role_index,
-                    key=f"edit_manager_role_{user_key}",
-                )
+        st.markdown("### Пароль и отключение")
 
-                edit_active = st.checkbox(
-                    "Активен",
-                    value=bool(selected_manager.get("active", True)),
-                    key=f"edit_manager_active_{user_key}",
-                )
+        c1, c2 = st.columns(2)
 
-            if st.button("Сохранить изменения пользователя", key=f"admin_save_user_changes_{user_key}"):
-                sb.table("managers").update({
-                    "full_name": edit_full_name,
-                    "phone": edit_phone,
-                    "email": edit_email,
-                    "region": edit_region,
-                    "role": edit_role,
-                    "active": edit_active,
-                }).eq("id", selected_manager["id"]).execute()
+        with c1:
+            new_password = st.text_input(
+                "Новый пароль",
+                type="password",
+                key=f"new_password_{user_key}",
+            )
 
-                st.success("Данные пользователя обновлены.")
-                st.rerun()
+            if st.button("Сбросить пароль", key=f"reset_password_{user_key}"):
+                if not new_password:
+                    st.warning("Введите новый пароль.")
+                else:
+                    sb.table("managers").update({
+                        "password": new_password
+                    }).eq("id", selected_manager["id"]).execute()
+                    st.success("Пароль обновлён.")
 
-            st.markdown("### Пароль и отключение")
+        with c2:
+            st.warning("Удаление отключает пользователя, но сохраняет историю расчётов.")
 
-            st.markdown("### Редактировать данные пользователя")
-
-            e1, e2 = st.columns(2)
-            with e1:
-                edit_full_name = st.text_input(
-                    "ФИО",
-                    value=selected_manager.get("full_name") or "",
-                    key=f"edit_manager_full_name_{user_key}",
-                )
-                edit_phone = st.text_input(
-                    "Телефон",
-                    value=selected_manager.get("phone") or "",
-                    key=f"edit_manager_phone_{user_key}",
-                )
-                edit_email = st.text_input(
-                    "Почта",
-                    value=selected_manager.get("email") or "",
-                    key=f"edit_manager_email_{user_key}",
-                )
-
-            with e2:
-                current_region = selected_manager.get("region") or FEDERAL_DISTRICTS[0]
-                region_index = FEDERAL_DISTRICTS.index(current_region) if current_region in FEDERAL_DISTRICTS else 0
-
-                edit_region = st.selectbox(
-                    "Регион / федеральный округ",
-                    FEDERAL_DISTRICTS,
-                    index=region_index,
-                    key=f"edit_manager_region_{user_key}",
-                )
-
-                current_role = selected_manager.get("role") or "manager"
-                role_options = ["manager", "admin"]
-                role_index = role_options.index(current_role) if current_role in role_options else 0
-
-                edit_role = st.selectbox(
-                    "Роль",
-                    role_options,
-                    index=role_index,
-                    key=f"edit_manager_role_{user_key}",
-                )
-
-                edit_active = st.checkbox(
-                    "Активен",
-                    value=bool(selected_manager.get("active", True)),
-                    key=f"edit_manager_active_{user_key}",
-                )
-
-            if st.button("Сохранить изменения пользователя", key=f"admin_save_user_changes_{user_key}"):
-                sb.table("managers").update({
-                    "full_name": edit_full_name,
-                    "phone": edit_phone,
-                    "email": edit_email,
-                    "region": edit_region,
-                    "role": edit_role,
-                    "active": edit_active,
-                }).eq("id", selected_manager["id"]).execute()
-
-                st.success("Данные пользователя обновлены.")
-                st.rerun()
-
-            st.markdown("### Пароль и отключение")
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-                new_password = st.text_input(
-                    "Новый пароль",
-                    type="password",
-                    key=f"admin_new_password_{user_key}",
-                )
-
-                if st.button("Сбросить пароль", key=f"admin_reset_password_{user_key}"):
-                    if not new_password:
-                        st.warning("Введите новый пароль.")
-                    else:
-                        sb.table("managers").update({
-                            "password": new_password
-                        }).eq("id", selected_manager["id"]).execute()
-                        st.success("Пароль обновлён.")
-
-            with c2:
-                st.warning("Удаление отключает пользователя, но сохраняет историю расчётов.")
-
-                if st.button("Удалить пользователя", key=f"admin_delete_user_{user_key}"):
-                    if selected_manager.get("role") == "admin":
-                        st.error("Администратора удалять нельзя.")
-                    else:
-                        sb.table("managers").update({
-                            "active": False
-                        }).eq("id", selected_manager["id"]).execute()
-                        st.success("Пользователь отключён.")
-                        st.rerun()
-        else:
-            st.info("Пользователей пока нет.")
+            if st.button("Удалить пользователя", key=f"delete_user_{user_key}"):
+                if selected_manager.get("role") == "admin":
+                    st.error("Администратора удалять нельзя.")
+                else:
+                    sb.table("managers").update({
+                        "active": False
+                    }).eq("id", selected_manager["id"]).execute()
+                    st.success("Пользователь отключён.")
+                    st.rerun()
 
 
 def build_analysis_files_uploader() -> list:
