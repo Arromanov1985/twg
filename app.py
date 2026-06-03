@@ -285,10 +285,16 @@ def require_login():
         query = sb.table("managers").select("*").eq("email", email).eq("password", password).eq("active", True)
         if login_type == "Админ":
             query = query.eq("role", "admin")
-        rows = query.execute().data or []
+        result = query.execute()
+        rows = result.data or []
+
         if not rows:
             st.error("Неверный логин или пароль.")
+            st.caption(f"Диагностика: email={email!r}, login_type={login_type!r}")
+            debug_rows = sb.table("managers").select("email, role, active").execute().data or []
+            st.caption(f"Пользователи в базе: {debug_rows}")
             st.stop()
+
         st.session_state["current_user"] = rows[0]
         st.rerun()
 
