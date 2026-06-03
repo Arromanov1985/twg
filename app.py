@@ -464,9 +464,7 @@ def calculations_history_panel(current_user: dict):
                 "Выгода": row.get("benefit_total"),
             })
 
-        st.dataframe(view_rows, width="stretch", hide_index=True)
-
-        st.subheader("Открыть расчёт")
+        st.subheader("История расчётов")
 
         labels = []
         by_label = {}
