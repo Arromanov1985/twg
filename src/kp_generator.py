@@ -121,13 +121,4 @@ def render_kp_html(context: dict[str, Any], template_path: Path) -> str:
 
 
 def html_to_pdf_bytes(html: str, base_dir: Path | None = None) -> bytes:
-    from io import BytesIO
-    from xhtml2pdf import pisa
-
-    output = BytesIO()
-    status = pisa.CreatePDF(src=html, dest=output, encoding="utf-8")
-
-    if status.err:
-        raise RuntimeError("PDF не сформировался через xhtml2pdf.")
-
-    return output.getvalue()
+    raise RuntimeError("Серверная генерация PDF отключена. Используйте веб-КП: Печать -> Сохранить как PDF.")
