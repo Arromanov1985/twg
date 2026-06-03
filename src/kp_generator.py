@@ -121,13 +121,13 @@ def render_kp_html(context: dict[str, Any], template_path: Path) -> str:
 
 
 def html_to_pdf_bytes(html: str, base_dir: Path | None = None) -> bytes:
-    # WeasyPrint лучше переносит таблицы, страницы и CSS для PDF.
-    try:
-        from weasyprint import HTML
-    except Exception as exc:
-        raise RuntimeError(
-            "WeasyPrint не установлен. Добавьте weasyprint в requirements.txt."
-        ) from exc
+    from io import BytesIO
+    from xhtml2pdf import pisa
 
-    base_url = str(base_dir) if base_dir else None
-    return HTML(string=html, base_url=base_url).write_pdf()
+    output = BytesIO()
+    status = pisa.CreatePDF(src=html, dest=output, encoding="utf-8")
+
+    if status.err:
+        raise RuntimeError("PDF не сформировался через xhtml2pdf.")
+
+    return output.getvalue()
