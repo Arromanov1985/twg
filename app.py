@@ -734,7 +734,41 @@ def calculations_history_panel(current_user: dict):
 
             st.subheader("Оборудование")
             if equipment_data:
-                st.dataframe(equipment_data, width="stretch", hide_index=True)
+                equipment_df = pd.DataFrame(equipment_data)
+
+                # Убираем технические поля
+                for col in ["stage"]:
+                    if col in equipment_df.columns:
+                        equipment_df = equipment_df.drop(columns=[col])
+
+                # Переименовываем колонки для нормального отображения
+                equipment_df = equipment_df.rename(columns={
+                    "qty": "Кол-во",
+                    "code": "Артикул",
+                    "name": "Наименование",
+                    "retail_price": "Цена розница, руб.",
+                    "partner_price": "Цена партнёр, руб.",
+                    "retail_sum": "Сумма розница, руб.",
+                    "partner_sum": "Сумма партнёр, руб.",
+                    "benefit_sum": "Маржа, руб.",
+                })
+
+                preferred_columns = [
+                    "Кол-во",
+                    "Артикул",
+                    "Наименование",
+                    "Цена розница, руб.",
+                    "Цена партнёр, руб.",
+                    "Сумма розница, руб.",
+                    "Сумма партнёр, руб.",
+                    "Маржа, руб.",
+                ]
+
+                equipment_df = equipment_df[
+                    [c for c in preferred_columns if c in equipment_df.columns]
+                ]
+
+                st.dataframe(equipment_df, width="stretch", hide_index=True)
             else:
                 st.info("Оборудование не сохранено.")
 
