@@ -1326,7 +1326,7 @@ def main() -> None:
         st.session_state.pop("current_user", None)
         st.rerun()
     admin_users_panel(current_user)
-    # calculations_history_panel(current_user)  # отключено здесь, чтобы не дублировать виджет
+    calculations_history_panel(current_user)
 
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
