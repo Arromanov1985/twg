@@ -890,18 +890,6 @@ def build_resin_line_form(values: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_odor_form(values: dict[str, Any]) -> dict[str, Any]:
-    st.subheader("1.2. Запах воды")
-    c1, c2, c3 = st.columns([2, 1, 2])
-    with c1:
-        odor_type = st.selectbox("Тип запаха", list(ODOR_TYPES.keys()))
-    with c2:
-        odor_level = st.selectbox("Интенсивность", list(ODOR_LEVELS.keys()))
-    with c3:
-        st.info("Запах влияет на подбор аэрации, сорбционной загрузки и дополнительных ступеней очистки.")
-
-    values["odor_type"] = odor_type
-    values["odor_level"] = odor_level
-    values["odor_score"] = ODOR_LEVELS[odor_level]
     return values
 
 
