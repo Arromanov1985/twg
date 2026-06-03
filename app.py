@@ -434,6 +434,10 @@ def save_calculation_block(current_user: dict, client_data: dict, values: dict, 
 
 
 def calculations_history_panel(current_user: dict):
+    if st.session_state.get("_history_panel_rendered"):
+        return
+    st.session_state["_history_panel_rendered"] = True
+
     sb = get_supabase_client()
     with st.expander("История расчётов"):
         query = sb.table("calculations").select("*, clients(company, client_name, phone, email, address), managers(full_name, email)").order("created_at", desc=True)
