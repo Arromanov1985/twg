@@ -1266,45 +1266,60 @@ def render_visual_kp(selected_df: pd.DataFrame, reasons: list[str], values: dict
             st.caption(str(item["description"]))
 
     st.subheader("3. Комплектация и стоимость")
-    table = selected_df[["name", "code", "qty", "price", "description"]].copy()
-    table["sum"] = table["qty"] * table["price"]
+    table = selected_df.copy()
+
+    for col in ["qty", "retail_price", "partner_price", "benefit"]:
+        if col not in table.columns:
+            table[col] = 0
+
+    table["Сумма розница, ₽"] = table["qty"] * table["retail_price"]
+    table["Сумма партнер, ₽"] = table["qty"] * table["partner_price"]
+    table["Выгода, ₽"] = table["qty"] * table["benefit"]
+
+    table = table[
+        [
+            "name",
+            "code",
+            "qty",
+            "retail_price",
+            "partner_price",
+            "Сумма розница, ₽",
+            "Сумма партнер, ₽",
+            "Выгода, ₽",
+            "description",
+        ]
+    ].copy()
+
     table.insert(0, "№", range(1, len(table) + 1))
+
     table.rename(
         columns={
             "name": "Наименование",
             "code": "Модель",
             "qty": "Кол-во",
-            "price": "Цена, ₽",
-            "sum": "Сумма, ₽",
+            "retail_price": "Розница, ₽",
+            "partner_price": "Партнер, ₽",
             "description": "Назначение",
         },
         inplace=True,
     )
 
     st.dataframe(table, width="stretch", hide_index=True)
-    total_sum = (selected_df["qty"] * selected_df["price"]).sum()
-    st.success(
-        f"Итого за базовый комплект: {total_sum:,.0f} ₽".replace(",", " ")
-    )
 
-    if {"retail_price", "partner_price", "benefit"}.issubset(selected_df.columns):
-        with st.expander("Внутренний расчет выгоды (не выводится в КП)"):
-            internal_table = selected_df[["name", "code", "qty", "retail_price", "partner_price", "benefit"]].copy()
-            internal_table["Выгода итого, ₽"] = internal_table["qty"] * internal_table["benefit"]
-            internal_table.rename(
-                columns={
-                    "name": "Наименование",
-                    "code": "Модель",
-                    "qty": "Кол-во",
-                    "retail_price": "Розница, ₽",
-                    "partner_price": "Партнер, ₽",
-                    "benefit": "Выгода за ед., ₽",
-                },
-                inplace=True,
-            )
-            st.dataframe(internal_table, width="stretch", hide_index=True)
-            total_benefit = (selected_df["qty"] * selected_df["benefit"]).sum()
-            st.info(f"Итого выгода: {total_benefit:,.0f} ₽".replace(",", " "))
+    total_retail = (selected_df["qty"] * selected_df["retail_price"]).sum()
+    total_partner = (selected_df["qty"] * selected_df["partner_price"]).sum()
+    total_benefit = (selected_df["qty"] * selected_df["benefit"]).sum()
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.success(f"Розница: {total_retail:,.0f} ₽".replace(",", " "))
+
+    with c2:
+        st.info(f"Партнер: {total_partner:,.0f} ₽".replace(",", " "))
+
+    with c3:
+        st.warning(f"Выгода: {total_benefit:,.0f} ₽".replace(",", " "))
 
     if reasons:
         st.subheader("Почему выбрано это оборудование")
