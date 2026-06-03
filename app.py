@@ -97,6 +97,34 @@ FEDERAL_DISTRICTS = [
     "Сибирский федеральный округ",
     "Дальневосточный федеральный округ",
 ]
+
+RUSSIAN_REGIONS = [
+    "Москва",
+    "Московская область",
+    "Санкт-Петербург",
+    "Ленинградская область",
+    "Краснодарский край",
+    "Ставропольский край",
+    "Ростовская область",
+    "Воронежская область",
+    "Белгородская область",
+    "Нижегородская область",
+    "Самарская область",
+    "Саратовская область",
+    "Республика Татарстан",
+    "Республика Башкортостан",
+    "Пермский край",
+    "Свердловская область",
+    "Челябинская область",
+    "Тюменская область",
+    "Новосибирская область",
+    "Омская область",
+    "Красноярский край",
+    "Иркутская область",
+    "Приморский край",
+    "Хабаровский край",
+]
+
 STAGE_NAMES = {
     1: "Механическая очистка",
     2: "Аэрация",
@@ -1501,6 +1529,10 @@ def main() -> None:
     analysis, catalog, rules = load_data()
     client_data = build_client_form()
     values = build_input_form(analysis)
+    values["people"] = client_data.get("people", 4)
+    values["federal_district"] = client_data.get("federal_district", "")
+    values["region_subject"] = client_data.get("region_subject", "")
+    values["address"] = client_data.get("address", "")
     values = build_resin_line_form(values)
     values["odor_h2s"] = st.selectbox(
         "Запах (сероводород)",
