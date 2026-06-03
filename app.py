@@ -890,12 +890,31 @@ def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
         values["analysis_date"] = analysis_date.strftime("%d.%m.%Y")
 
     cols = st.columns(4)
+    visible_index = 0
+
     for i, row in analysis.iterrows():
         parameter = str(row["parameter"]).strip()
+        parameter_key = parameter.lower()
         label = str(row.get("label", parameter))
+
+        if parameter_key in {"people", "h2s", "odor_h2s"}:
+            continue
+
+        if "прожива" in label.lower():
+            continue
+
+        if "сероводород" in label.lower():
+            continue
+
         unit = str(row.get("unit", ""))
+
+        if label.lower() == "ph":
+            label = "pH"
+            unit = ""
+
         default = row.get("value", 0)
-        with cols[i % 4]:
+        with cols[visible_index % 4]:
+            visible_index += 1
             if str(default).lower() in {"yes", "no", "true", "false", "да", "нет"}:
                 values[parameter] = st.selectbox(
                     label,
