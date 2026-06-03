@@ -580,7 +580,27 @@ def calculations_history_panel(current_user: dict):
             "*, clients(company, client_name, phone, email, address), managers(full_name, email)"
         ).order("created_at", desc=True)
 
-        if current_user.get("role") != "admin":
+        selected_manager_filter = None
+
+        if current_user.get("role") == "admin":
+            managers_list = sb.table("managers").select("id, full_name, email").order("full_name").execute().data or []
+
+            manager_options = {"Все": None}
+            for m in managers_list:
+                label = f"{m.get('full_name') or m.get('email')} | {m.get('email')}"
+                manager_options[label] = m.get("id")
+
+            selected_manager_label = st.selectbox(
+                "Фильтр по менеджеру",
+                list(manager_options.keys()),
+                key="history_manager_filter",
+            )
+
+            selected_manager_filter = manager_options[selected_manager_label]
+
+            if selected_manager_filter:
+                query = query.eq("manager_id", selected_manager_filter)
+        else:
             query = query.eq("manager_id", current_user["id"])
 
         rows = query.execute().data or []
