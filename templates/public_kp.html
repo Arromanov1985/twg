@@ -6,7 +6,7 @@
 body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
 .page{width:297mm;min-height:210mm;margin:auto;background:white;padding:7mm;box-sizing:border-box}
 .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;border:1px solid #d7e8fa;border-radius:24px;padding:10px;background:linear-gradient(135deg,#fff,#eaf6ff)}
-.logo img{height:70px;width:auto}
+.logo img{height:75px;width:auto;display:block}
 .title{font-size:25px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
 .subtitle{font-size:11px;margin-top:12px}
 .house{border-radius:22px;background:linear-gradient(135deg,#003c7a,#009fe3);color:white;display:flex;align-items:center;justify-content:center;text-align:center;font-size:20px;font-weight:900}
@@ -127,7 +127,7 @@ th,td{padding:5px;font-size:10px}
 
 <div class="hero">
   <div>
-    <div class="logo"><img src="assets/twg_logo.png" alt="TWG"></div>
+    <div class="logo"><img src="{{ logo_uri }}" alt="Terra Water Group"></div>
     <div class="title">Коммерческое предложение<br>Система очистки воды</div>
     <div class="subtitle">Подбор оборудования на основании анализа воды и параметров объекта</div>
     <div class="meta">

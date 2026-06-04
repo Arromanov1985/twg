@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import base64
 from jinja2 import Template
 import streamlit as st
 
@@ -1637,6 +1638,15 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
 
 
 
+def _asset_to_base64(path: Path) -> str:
+    try:
+        suffix = path.suffix.lower().replace(".", "")
+        mime = "image/png" if suffix == "png" else "image/jpeg"
+        data = base64.b64encode(path.read_bytes()).decode("ascii")
+        return f"data:{mime};base64,{data}"
+    except Exception:
+        return ""
+
 def build_public_kp_number(calc: dict, kp_type: str) -> str:
     water_data = calc.get("water_data") or {}
     region = str(water_data.get("region_subject") or water_data.get("federal_district") or "REGION")
@@ -1780,6 +1790,7 @@ def render_public_kp_page(kp_id: str) -> None:
         "equipment": equipment,
         "water_rows": water_rows,
         "total_text": money(total),
+        "logo_uri": _asset_to_base64(BASE_DIR / "assets" / "twg_logo.png"),
         "retail_total_text": money(calc.get("retail_total") or 0),
         "partner_total_text": money(calc.get("partner_total") or 0),
         "benefit_total_text": money(calc.get("benefit_total") or 0),
