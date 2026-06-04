@@ -625,6 +625,46 @@ def save_calculation_block(current_user: dict, client_data: dict, values: dict, 
 
         st.success("Расчёт сохранён.")
 
+        base_url = "https://xtwwfwenhzukhsngtysoqg.streamlit.app"
+        client_url = f"{base_url}/?kp_id={calculation_id}&kp_type=client"
+        partner_url = f"{base_url}/?kp_id={calculation_id}&kp_type=partner"
+
+        st.subheader("Ссылки на веб-КП")
+
+        st.text_input(
+            "Client — ссылка для клиента",
+            value=client_url,
+            key=f"saved_client_url_{calculation_id}",
+        )
+        st.link_button("Открыть КП для клиента", client_url, width="stretch")
+
+        st.components.v1.html(
+            f"""
+            <button onclick="navigator.clipboard.writeText('{client_url}'); alert('Ссылка Client скопирована');"
+                style="background:#005bbb;color:white;padding:10px 18px;border-radius:8px;border:none;font-weight:700;cursor:pointer;">
+                Скопировать ссылку Client
+            </button>
+            """,
+            height=55,
+        )
+
+        st.text_input(
+            "Partner — ссылка для партнёра",
+            value=partner_url,
+            key=f"saved_partner_url_{calculation_id}",
+        )
+        st.link_button("Открыть КП для партнёра", partner_url, width="stretch")
+
+        st.components.v1.html(
+            f"""
+            <button onclick="navigator.clipboard.writeText('{partner_url}'); alert('Ссылка Partner скопирована');"
+                style="background:#002b5c;color:white;padding:10px 18px;border-radius:8px;border:none;font-weight:700;cursor:pointer;">
+                Скопировать ссылку Partner
+            </button>
+            """,
+            height=55,
+        )
+
 
 def calculations_history_panel(current_user: dict):
     sb = get_supabase_client()
