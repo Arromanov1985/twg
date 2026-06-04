@@ -1722,7 +1722,7 @@ def render_public_kp_page(kp_id: str) -> None:
                 "description": "Назначение",
             })
             cols = [
-                "Кол-во", "Артикул", "Наименование",
+                "Артикул", "Наименование", "Кол-во",
                 "Розница, руб.", "Партнер, руб.",
                 "Сумма розница, руб.", "Сумма партнер, руб.",
                 "Выгода, руб.", "Назначение"
@@ -1736,7 +1736,7 @@ def render_public_kp_page(kp_id: str) -> None:
                 "retail_sum": "Сумма, руб.",
                 "description": "Назначение",
             })
-            cols = ["Кол-во", "Артикул", "Наименование", "Цена, руб.", "Сумма, руб.", "Назначение"]
+            cols = ["Артикул", "Наименование", "Кол-во", "Цена, руб.", "Сумма, руб.", "Назначение"]
 
         equipment_df = equipment_df[[c for c in cols if c in equipment_df.columns]]
         st.dataframe(equipment_df, width="stretch", hide_index=True)
