@@ -1782,6 +1782,8 @@ def render_public_kp_page(kp_id: str) -> None:
         "manager_email": manager.get("email") or "",
         "kp_number": build_public_kp_number(calc, kp_type),
         "kp_type": kp_type,
+        "analysis_number": water_data.get("analysis_number") or "б/н",
+        "analysis_date": water_data.get("analysis_date") or str(calc.get("created_at") or "")[:10],
         "object_type": val("object_type", "Частный дом"),
         "water_source": val("water_source", "Скважина"),
         "people": val("people", "—"),
