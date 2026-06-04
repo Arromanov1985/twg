@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#edf5fb;font-family:Arial,sans-serif;color:#102033}
+.page{width:297mm;min-height:210mm;margin:0 auto 12px;background:white;padding:8mm;overflow:hidden}
+.print-btn{background:#005bbb;color:white;border:0;border-radius:10px;padding:10px 18px;font-weight:800;margin-bottom:8px;cursor:pointer}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;border:1px solid #d7e8fa;border-radius:24px;padding:14px;background:linear-gradient(135deg,#fff,#eaf6ff)}
+.logo img{height:70px;width:auto}
+.house-img{width:100%;height:92mm;object-fit:cover;border-radius:18px}
+.title{font-size:32px;line-height:1.05;font-weight:900;color:#003c7a;margin-top:10px}
+.subtitle{font-size:14px;margin-top:10px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta div{border:1px solid #d7e8fa;border-radius:10px;padding:7px 10px;font-size:11px;background:white}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.card{border:1px solid #d7e8fa;border-radius:16px;padding:12px;background:white}
+.card img{height:38px;max-width:190px;object-fit:contain;margin-bottom:6px}
+.card ul{margin:0;padding-left:18px;font-size:12px}
+.section{font-size:24px;font-weight:900;color:#003c7a;margin:18px 0 10px}
+.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.benefit{border:1px solid #d7e8fa;border-radius:16px;padding:14px;text-align:center;background:white}
+.flow{display:flex;gap:8px;align-items:stretch;overflow:hidden}
+.step{min-width:105px;border:1px solid #d7e8fa;border-radius:14px;padding:10px;text-align:center;font-size:11px;background:white}
+.arrow{display:flex;align-items:center;color:#0078d4;font-weight:900}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #d7e8fa;padding:7px;font-size:11px}
+th{background:#eef6ff;color:#003c7a}
+.price-box{background:#003c7a;color:white;border-radius:20px;padding:24px;text-align:center}
+.price{font-size:42px;font-weight:900}
+.service-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.footer{margin-top:18px;background:#eef6ff;border-radius:18px;padding:18px;display:flex;justify-content:space-between}
+@page{size:A4 landscape;margin:7mm}
+@media print{body{background:white}.print-btn{display:none}.page{margin:0;width:100%;min-height:196mm;padding:0;page-break-after:always}.card,.benefit,.step,table{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="page">
+<button class="print-btn" onclick="window.print()">Печать / Сохранить PDF</button>
+
+<div class="hero">
+  <div>
+    <div class="logo"><img src="{{ logo_uri }}"></div>
+    <div class="title">Коммерческое предложение<br>Система очистки воды<br>для частного дома</div>
+    <div class="subtitle">Подбор оборудования на основании анализа воды и параметров объекта</div>
+    <div class="meta">
+      <div><b>Дата КП:</b> {{ date }}</div>
+      <div><b>Клиент:</b> {{ client_name }}</div>
+      <div><b>Менеджер:</b> {{ manager_name }}</div>
+      <div><b>Анализ воды №</b> {{ analysis_number }} от {{ analysis_date }}</div>
+      <div><b>Номер КП:</b> {{ kp_number }}</div>
+    </div>
+  </div>
+  <div><img class="house-img" src="{{ house_uri }}"></div>
+</div>
+
+<div class="grid3">
+  <div class="card"><img src="{{ problem_uri }}"><ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul></div>
+  <div class="card"><img src="{{ solution_uri }}"><ul><li>Удаление железа и марганца</li><li>Снижение жесткости воды</li><li>Устранение запаха</li><li>Защита бытовой техники</li></ul></div>
+  <div class="card"><img src="{{ result_uri }}"><ul><li>Чистая вода без запаха</li><li>Меньше накипи и коррозии</li><li>Комфорт для семьи</li><li>Сервисная поддержка TWG</li></ul></div>
+</div>
+</div>
+
+<div class="page">
+<div class="section">Для кого</div>
+<div class="benefits">
+  <div class="benefit"><b>{{ object_type }}</b><br>Тип объекта</div>
+  <div class="benefit"><b>{{ water_source }}</b><br>Источник воды</div>
+  <div class="benefit"><b>{{ people }}</b><br>Проживающих</div>
+  <div class="benefit"><b>{{ flow_peak }}</b><br>м³/ч расход</div>
+</div>
+
+<div class="section">Принципиальная схема монтажа</div>
+<div class="flow">
+  <div class="step"><b>Скважина</b></div>
+  {% for item in equipment %}
+  <div class="arrow">→</div>
+  <div class="step"><b>{{ loop.index }}</b><br><small>{{ item.code }}</small></div>
+  {% endfor %}
+  <div class="arrow">→</div>
+  <div class="step"><b>Дом</b></div>
+</div>
+
+<div class="section">Анализ воды</div>
+<table>
+{% for row in water_rows %}
+<tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="page">
+<div class="section">Комплектация и стоимость</div>
+<table>
+<thead><tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
+<tbody>
+{% for item in equipment %}
+<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>{{ item.price_text }}</td><td>{{ item.sum_text }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div class="grid3">
+  <div class="card"><h3>Гарантии TWG</h3><ul><li>Подбор по анализу воды</li><li>Сертифицированное оборудование</li><li>Техническая поддержка</li><li>Сервисное обслуживание</li></ul></div>
+  <div class="card"><h3>Рекомендации</h3><ul><li>Проверять соль 1 раз в 2–4 недели</li><li>Менять картриджи по загрязнению</li><li>Проводить сервис 1 раз в год</li></ul></div>
+  <div class="price-box"><div>Итого по комплекту</div><div class="price">{{ total_text }}</div></div>
+</div>
+
+<div class="footer">
+  <div><b>Terra Water Group</b><br>Чистая вода для вашей семьи</div>
+  <div><b>{{ manager_name }}</b><br>{{ manager_phone }}<br>{{ manager_email }}</div>
+</div>
+</div>
+
+</body>
+</html>

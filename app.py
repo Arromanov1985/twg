@@ -1733,6 +1733,8 @@ def render_public_kp_page(kp_id: str) -> None:
 
         retail_price = float(row.get("retail_price") or row.get("price") or 0)
 
+        benefit = retail_price - price
+
         equipment.append({
             "code": row.get("code") or "",
             "name": row.get("name") or "",
@@ -1741,6 +1743,7 @@ def render_public_kp_page(kp_id: str) -> None:
             "retail_price_text": money(retail_price),
             "price_text": money(price),
             "sum_text": money(price * qty),
+            "benefit_text": money(benefit * qty),
         })
 
     water_rows = []
@@ -1794,12 +1797,16 @@ def render_public_kp_page(kp_id: str) -> None:
         "total_text": money(total),
         "logo_uri": _asset_to_base64(BASE_DIR / "assets" / "twg_logo.png"),
         "house_uri": _asset_to_base64(BASE_DIR / "assets" / "house.png"),
+        "problem_uri": _asset_to_base64(BASE_DIR / "assets" / "problem.png"),
+        "solution_uri": _asset_to_base64(BASE_DIR / "assets" / "solution.png"),
+        "result_uri": _asset_to_base64(BASE_DIR / "assets" / "result.png"),
         "retail_total_text": money(calc.get("retail_total") or 0),
         "partner_total_text": money(calc.get("partner_total") or 0),
         "benefit_total_text": money(calc.get("benefit_total") or 0),
     }
 
-    template_path = BASE_DIR / "templates" / "public_kp.html"
+    template_name = "partner_kp.html" if kp_type == "partner" else "client_kp.html"
+    template_path = BASE_DIR / "templates" / template_name
     html = Template(template_path.read_text(encoding="utf-8")).render(**context)
 
     st.components.v1.html(html, height=3600, scrolling=True)
