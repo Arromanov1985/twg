@@ -800,16 +800,45 @@ def calculations_history_panel(current_user: dict):
             else:
                 st.info("Оборудование не сохранено.")
 
-            st.subheader("Ссылка на веб-КП")
+            st.subheader("Ссылки на веб-КП")
+
             base_url = "https://xtwwfwenhzukhsngtysoqg.streamlit.app"
-            kp_url = f"{base_url}/?kp_id={opened['id']}"
-            st.text_input("Ссылка для клиента", value=kp_url, key=f"kp_url_{opened['id']}")
-            st.link_button("Открыть веб-КП", kp_url, width="stretch")
+
+            client_url = f"{base_url}/?kp_id={opened['id']}&kp_type=client"
+            partner_url = f"{base_url}/?kp_id={opened['id']}&kp_type=partner"
+
+            client_number = build_public_kp_number(opened, "client")
+            partner_number = build_public_kp_number(opened, "partner")
+
+            st.text_input(
+                f"Client: {client_number}",
+                value=client_url,
+                key=f"client_kp_url_{opened['id']}",
+            )
+            st.link_button("Открыть КП для клиента", client_url, width="stretch")
+
             st.components.v1.html(
                 f"""
-                <button onclick="navigator.clipboard.writeText('{kp_url}'); alert('Ссылка скопирована');"
+                <button onclick="navigator.clipboard.writeText('{client_url}'); alert('Ссылка Client скопирована');"
                     style="background:#005bbb;color:white;padding:10px 18px;border-radius:8px;border:none;font-weight:700;cursor:pointer;">
-                    Скопировать ссылку на КП
+                    Скопировать ссылку Client
+                </button>
+                """,
+                height=55,
+            )
+
+            st.text_input(
+                f"Partner: {partner_number}",
+                value=partner_url,
+                key=f"partner_kp_url_{opened['id']}",
+            )
+            st.link_button("Открыть КП для партнера", partner_url, width="stretch")
+
+            st.components.v1.html(
+                f"""
+                <button onclick="navigator.clipboard.writeText('{partner_url}'); alert('Ссылка Partner скопирована');"
+                    style="background:#002b5c;color:white;padding:10px 18px;border-radius:8px;border:none;font-weight:700;cursor:pointer;">
+                    Скопировать ссылку Partner
                 </button>
                 """,
                 height=55,
@@ -1584,8 +1613,29 @@ def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str
 
 
 
+
+def build_public_kp_number(calc: dict, kp_type: str) -> str:
+    water_data = calc.get("water_data") or {}
+    region = str(water_data.get("region_subject") or water_data.get("federal_district") or "REGION")
+    region = (
+        region.replace(" ", "-")
+        .replace("/", "-")
+        .replace("\\", "-")
+        .replace(".", "")
+    )
+
+    created = str(calc.get("created_at") or "")[:10].replace("-", "")
+    short_id = str(calc.get("id") or "")[:8]
+    type_part = "Partner" if kp_type == "partner" else "Client"
+
+    return f"TWG-{region}-{created}-{short_id}-{type_part}"
+
+
 def render_public_kp_page(kp_id: str) -> None:
     sb = get_supabase_client()
+    kp_type = st.query_params.get("kp_type", "client")
+    if kp_type not in {"client", "partner"}:
+        kp_type = "client"
     result = sb.table("calculations").select(
         "*, clients(company, client_name, phone, email, address), managers(full_name, phone, email)"
     ).eq("id", kp_id).execute()
@@ -1596,6 +1646,7 @@ def render_public_kp_page(kp_id: str) -> None:
         return
 
     calc = rows[0]
+    kp_number = build_public_kp_number(calc, kp_type)
     client = calc.get("clients") or {}
     manager = calc.get("managers") or {}
     water_data = calc.get("water_data") or {}
@@ -1614,6 +1665,7 @@ def render_public_kp_page(kp_id: str) -> None:
 
     st.title("Коммерческое предложение")
     st.subheader("Система очистки воды для частного дома")
+    st.caption(f"Номер КП: {kp_number}")
 
     st.components.v1.html(
         """
@@ -1640,7 +1692,12 @@ def render_public_kp_page(kp_id: str) -> None:
 
     with c3:
         st.markdown("### Стоимость")
-        st.metric("Итого", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
+        if kp_type == "partner":
+            st.metric("Розница", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
+            st.metric("Партнер", f"{float(calc.get('partner_total') or 0):,.0f} руб.".replace(",", " "))
+            st.metric("Выгода", f"{float(calc.get('benefit_total') or 0):,.0f} руб.".replace(",", " "))
+        else:
+            st.metric("Итого", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
 
     st.markdown("## Анализ воды")
     water_rows = []
@@ -1663,15 +1720,35 @@ def render_public_kp_page(kp_id: str) -> None:
         equipment_df = pd.DataFrame(equipment_data)
         if "stage" in equipment_df.columns:
             equipment_df = equipment_df.drop(columns=["stage"])
-        equipment_df = equipment_df.rename(columns={
-            "qty": "Кол-во",
-            "code": "Артикул",
-            "name": "Наименование",
-            "retail_price": "Цена, руб.",
-            "retail_sum": "Сумма, руб.",
-            "description": "Назначение",
-        })
-        cols = ["Кол-во", "Артикул", "Наименование", "Цена, руб.", "Сумма, руб.", "Назначение"]
+        if kp_type == "partner":
+            equipment_df = equipment_df.rename(columns={
+                "qty": "Кол-во",
+                "code": "Артикул",
+                "name": "Наименование",
+                "retail_price": "Розница, руб.",
+                "partner_price": "Партнер, руб.",
+                "retail_sum": "Сумма розница, руб.",
+                "partner_sum": "Сумма партнер, руб.",
+                "benefit_sum": "Выгода, руб.",
+                "description": "Назначение",
+            })
+            cols = [
+                "Кол-во", "Артикул", "Наименование",
+                "Розница, руб.", "Партнер, руб.",
+                "Сумма розница, руб.", "Сумма партнер, руб.",
+                "Выгода, руб.", "Назначение"
+            ]
+        else:
+            equipment_df = equipment_df.rename(columns={
+                "qty": "Кол-во",
+                "code": "Артикул",
+                "name": "Наименование",
+                "retail_price": "Цена, руб.",
+                "retail_sum": "Сумма, руб.",
+                "description": "Назначение",
+            })
+            cols = ["Кол-во", "Артикул", "Наименование", "Цена, руб.", "Сумма, руб.", "Назначение"]
+
         equipment_df = equipment_df[[c for c in cols if c in equipment_df.columns]]
         st.dataframe(equipment_df, width="stretch", hide_index=True)
 
