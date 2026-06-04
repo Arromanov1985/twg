@@ -5,7 +5,7 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#edf5fb;font-family:Arial,sans-serif;color:#102033}
-.page{width:297mm;min-height:210mm;margin:0 auto 12px;background:white;padding:8mm;overflow:hidden}
+.page{position:relative;width:297mm;min-height:210mm;margin:0 auto 12px;background:white;padding:8mm;overflow:hidden}
 .print-btn{background:#002b5c;color:white;border:0;border-radius:10px;padding:10px 18px;font-weight:800;margin-bottom:8px;cursor:pointer}
 .header{display:grid;grid-template-columns:1fr 1fr;gap:20px;border:1px solid #d7e8fa;border-radius:22px;padding:18px;background:#eef6ff}
 .logo img{height:70px}
@@ -25,7 +25,29 @@ th{background:#eef6ff;color:#003c7a}
 .footer{margin-top:18px;background:#eef6ff;border-radius:18px;padding:18px;display:flex;justify-content:space-between}
 @page{size:A4 landscape;margin:7mm}
 @media print{body{background:white}.print-btn{display:none}.page{margin:0;width:100%;min-height:196mm;padding:0;page-break-after:always}}
+
+.page-footer{
+  position:absolute;
+  left:8mm;
+  right:8mm;
+  bottom:6mm;
+  height:12mm;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-top:1px solid #d7e8fa;
+  padding-top:3mm;
+}
+.page-footer img{
+  height:10mm;
+  width:auto;
+}
+.page-footer-text{
+  font-size:10px;
+  color:#666;
+}
 </style>
+
 </head>
 <body>
 
@@ -77,6 +99,14 @@ th{background:#eef6ff;color:#003c7a}
   <div><b>Terra Water Group</b><br>Партнерское КП</div>
   <div><b>{{ manager_name }}</b><br>{{ manager_phone }}<br>{{ manager_email }}</div>
 </div>
+</div>
+
+
+<div class="page-footer">
+  <img src="{{ logo_uri }}">
+  <div class="page-footer-text">
+    Terra Water Group
+  </div>
 </div>
 
 </body>
