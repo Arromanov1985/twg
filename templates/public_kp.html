@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <style>
 body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
-.page{max-width:1160px;margin:0 auto;background:white;padding:28px}
+.page{width:210mm;min-height:297mm;margin:auto;background:white;padding:12mm;box-sizing:border-box}
 .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;border:1px solid #d7e8fa;border-radius:24px;padding:28px;background:linear-gradient(135deg,#fff,#eaf6ff)}
 .logo{font-size:44px;font-weight:900;color:#003c7a}
 .title{font-size:34px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
@@ -75,18 +75,6 @@ th{background:#eef6ff;color:#003c7a}
   <div class="arrow">→</div><div class="step"><b>{{ loop.index }}</b><br>{{ item.name }}<br><small>{{ item.code }}</small></div>
   {% endfor %}
   <div class="arrow">→</div><div class="step"><b>Подача в дом</b></div>
-</div>
-
-<div class="section">Подобранное оборудование</div>
-<div class="equipment-grid">
-{% for item in equipment %}
-  <div class="equipment">
-    <div class="eq-photo">{{ item.code }}</div>
-    <b>{{ item.name }}</b><br><small>{{ item.code }}</small>
-    <p>{{ item.description }}</p>
-    <b>{{ item.qty }} шт. · {{ item.sum_text }}</b>
-  </div>
-{% endfor %}
 </div>
 
 <div class="section">Комплектация и стоимость</div>
