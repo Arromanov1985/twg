@@ -3,341 +3,106 @@
 <head>
 <meta charset="utf-8">
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f4f8fc;
-  color: #102033;
-}
-.page {
-  max-width: 1120px;
-  margin: 0 auto;
-  background: white;
-  padding: 28px;
-}
-.hero {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
-  border-radius: 22px;
-  padding: 28px;
-  background: linear-gradient(135deg, #ffffff 0%, #eaf5ff 100%);
-  border: 1px solid #d7e8fa;
-}
-.logo {
-  font-size: 42px;
-  font-weight: 900;
-  color: #0b2d5c;
-}
-.title {
-  font-size: 34px;
-  font-weight: 900;
-  color: #003c7a;
-  line-height: 1.1;
-  margin-top: 20px;
-}
-.subtitle {
-  font-size: 18px;
-  margin-top: 12px;
-}
-.house {
-  height: 260px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #0b2d5c, #0b8bdc);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 28px;
-  font-weight: 800;
-}
-.meta {
-  display: flex;
-  gap: 18px;
-  margin-top: 18px;
-  flex-wrap: wrap;
-}
-.meta div {
-  background: white;
-  border: 1px solid #d7e8fa;
-  border-radius: 12px;
-  padding: 10px 14px;
-}
-.grid3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 24px;
-}
-.card {
-  border: 1px solid #d7e8fa;
-  border-radius: 18px;
-  padding: 20px;
-  background: white;
-}
-.card h3 {
-  margin-top: 0;
-  color: #003c7a;
-}
-.problem h3 { color: #d93636; }
-.solution h3 { color: #003c7a; }
-.result h3 { color: #238636; }
-ul {
-  padding-left: 20px;
-}
-.section-title {
-  font-size: 26px;
-  color: #003c7a;
-  font-weight: 900;
-  margin: 34px 0 16px;
-}
-.benefits {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.benefit {
-  border: 1px solid #d7e8fa;
-  border-radius: 16px;
-  padding: 18px;
-  text-align: center;
-}
-.benefit-icon {
-  font-size: 34px;
-}
-.flow {
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-  overflow-x: auto;
-}
-.step {
-  min-width: 130px;
-  border: 1px solid #d7e8fa;
-  border-radius: 16px;
-  padding: 14px;
-  text-align: center;
-  background: #ffffff;
-}
-.arrow {
-  display: flex;
-  align-items: center;
-  color: #0078d4;
-  font-size: 24px;
-  font-weight: 900;
-}
-.equipment-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-.equipment {
-  border: 1px solid #d7e8fa;
-  border-radius: 16px;
-  padding: 16px;
-}
-.eq-photo {
-  height: 120px;
-  background: #eef6ff;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0078d4;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-.price-box {
-  background: #003c7a;
-  color: white;
-  border-radius: 18px;
-  padding: 24px;
-  text-align: center;
-}
-.price {
-  font-size: 42px;
-  font-weight: 900;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-}
-th, td {
-  border: 1px solid #d7e8fa;
-  padding: 9px;
-  font-size: 14px;
-}
-th {
-  background: #eef6ff;
-  color: #003c7a;
-}
-.footer {
-  margin-top: 30px;
-  padding: 22px;
-  background: #eef6ff;
-  border-radius: 18px;
-  display: flex;
-  justify-content: space-between;
-}
-.print-btn {
-  position: sticky;
-  top: 10px;
-  z-index: 5;
-  background: #005bbb;
-  color: white;
-  border: none;
-  padding: 13px 22px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 800;
-  cursor: pointer;
-}
-@media print {
-  body { background: white; }
-  .print-btn { display: none; }
-  .page { padding: 12mm; }
-  .card, .equipment, .step, table { page-break-inside: avoid; }
-}
+body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
+.page{max-width:1160px;margin:0 auto;background:white;padding:28px}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;border:1px solid #d7e8fa;border-radius:24px;padding:28px;background:linear-gradient(135deg,#fff,#eaf6ff)}
+.logo{font-size:44px;font-weight:900;color:#003c7a}
+.title{font-size:34px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
+.subtitle{font-size:18px;margin-top:12px}
+.house{border-radius:22px;background:linear-gradient(135deg,#003c7a,#009fe3);color:white;display:flex;align-items:center;justify-content:center;text-align:center;font-size:28px;font-weight:900}
+.meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.meta div{border:1px solid #d7e8fa;border-radius:12px;padding:10px 14px;background:white}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.card{border:1px solid #d7e8fa;border-radius:18px;padding:20px;background:white}
+.card h3{margin-top:0;color:#003c7a}
+.problem h3{color:#d93636}.result h3{color:#238636}
+.section{font-size:26px;font-weight:900;color:#003c7a;margin:34px 0 16px}
+.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.benefit{border:1px solid #d7e8fa;border-radius:16px;padding:18px;text-align:center}
+.flow{display:flex;gap:12px;overflow-x:auto}
+.step{min-width:135px;border:1px solid #d7e8fa;border-radius:16px;padding:14px;text-align:center}
+.arrow{display:flex;align-items:center;font-size:24px;color:#0078d4;font-weight:900}
+.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.equipment{border:1px solid #d7e8fa;border-radius:16px;padding:16px}
+.eq-photo{height:115px;background:#eef6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#0078d4;font-weight:800;margin-bottom:12px}
+.price-box{background:#003c7a;color:white;border-radius:18px;padding:24px;text-align:center}
+.price{font-size:42px;font-weight:900}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #d7e8fa;padding:9px;font-size:14px}
+th{background:#eef6ff;color:#003c7a}
+.footer{margin-top:30px;padding:22px;background:#eef6ff;border-radius:18px;display:flex;justify-content:space-between}
+.print-btn{background:#005bbb;color:white;border:none;padding:13px 22px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:16px}
+@media print{.print-btn{display:none}.page{padding:10mm}.card,.equipment,.step,table{page-break-inside:avoid}}
 </style>
 </head>
 <body>
 <div class="page">
-
-<button class="print-btn" onclick="window.print()">ÐÐµÑÐ°ÑÑ / Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ PDF</button>
+<button class="print-btn" onclick="window.print()">Печать / Сохранить PDF</button>
 
 <div class="hero">
   <div>
     <div class="logo">TWG</div>
-    <div class="title">ÐÐ¾Ð¼Ð¼ÐµÑÑÐµÑÐºÐ¾Ðµ Ð¿ÑÐµÐ´Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ<br>Ð¡Ð¸ÑÑÐµÐ¼Ð° Ð¾ÑÐ¸ÑÑÐºÐ¸ Ð²Ð¾Ð´Ñ</div>
-    <div class="subtitle">ÐÐ¾Ð´Ð±Ð¾Ñ Ð¾Ð±Ð¾ÑÑÐ´Ð¾Ð²Ð°Ð½Ð¸Ñ Ð½Ð° Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ð¸ Ð°Ð½Ð°Ð»Ð¸Ð·Ð° Ð²Ð¾Ð´Ñ Ð¸ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð² Ð¾Ð±ÑÐµÐºÑÐ°</div>
+    <div class="title">Коммерческое предложение<br>Система очистки воды</div>
+    <div class="subtitle">Подбор оборудования на основании анализа воды и параметров объекта</div>
     <div class="meta">
-      <div><b>ÐÐ°ÑÐ°:</b> {{ date }}</div>
-      <div><b>ÐÐ»Ð¸ÐµÐ½Ñ:</b> {{ client_name }}</div>
-      <div><b>ÐÐµÐ½ÐµÐ´Ð¶ÐµÑ:</b> {{ manager_name }}</div>
-      <div><b>ÐÐ¾Ð¼ÐµÑ ÐÐ:</b> {{ kp_number }}</div>
+      <div><b>Дата:</b> {{ date }}</div>
+      <div><b>Клиент:</b> {{ client_name }}</div>
+      <div><b>Менеджер:</b> {{ manager_name }}</div>
+      <div><b>Номер КП:</b> {{ kp_number }}</div>
     </div>
   </div>
-  <div class="house">Ð§Ð¸ÑÑÐ°Ñ Ð²Ð¾Ð´Ð°<br>Ð´Ð»Ñ ÑÐ°ÑÑÐ½Ð¾Ð³Ð¾ Ð´Ð¾Ð¼Ð°</div>
+  <div class="house">Чистая вода<br>для частного дома</div>
 </div>
 
 <div class="grid3">
-  <div class="card problem">
-    <h3>ÐÑÐ¾Ð±Ð»ÐµÐ¼Ð°</h3>
-    <ul>
-      {% for item in problems %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="card solution">
-    <h3>Ð ÐµÑÐµÐ½Ð¸Ðµ</h3>
-    <ul>
-      <li>Ð£Ð´Ð°Ð»ÐµÐ½Ð¸Ðµ Ð¶ÐµÐ»ÐµÐ·Ð° Ð¸ Ð¼Ð°ÑÐ³Ð°Ð½ÑÐ°</li>
-      <li>Ð¡Ð½Ð¸Ð¶ÐµÐ½Ð¸Ðµ Ð¶ÐµÑÑÐºÐ¾ÑÑÐ¸ Ð²Ð¾Ð´Ñ</li>
-      <li>Ð£ÑÑÑÐ°Ð½ÐµÐ½Ð¸Ðµ Ð·Ð°Ð¿Ð°ÑÐ°</li>
-      <li>ÐÐ°ÑÐ¸ÑÐ° ÑÐ°Ð½ÑÐµÑÐ½Ð¸ÐºÐ¸ Ð¸ ÑÐµÑÐ½Ð¸ÐºÐ¸</li>
-    </ul>
-  </div>
-  <div class="card result">
-    <h3>Ð ÐµÐ·ÑÐ»ÑÑÐ°Ñ</h3>
-    <ul>
-      <li>Ð§Ð¸ÑÑÐ°Ñ Ð²Ð¾Ð´Ð° Ð±ÐµÐ· Ð·Ð°Ð¿Ð°ÑÐ°</li>
-      <li>ÐÐµÐ½ÑÑÐµ Ð½Ð°ÐºÐ¸Ð¿Ð¸ Ð¸ ÐºÐ¾ÑÑÐ¾Ð·Ð¸Ð¸</li>
-      <li>ÐÐ¾Ð¼ÑÐ¾ÑÑ Ð´Ð»Ñ Ð²ÑÐµÐ¹ ÑÐµÐ¼ÑÐ¸</li>
-      <li>Ð¡ÐµÑÐ²Ð¸ÑÐ½Ð°Ñ Ð¿Ð¾Ð´Ð´ÐµÑÐ¶ÐºÐ° TWG</li>
-    </ul>
-  </div>
+  <div class="card problem"><h3>Проблема</h3><ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul></div>
+  <div class="card"><h3>Решение</h3><ul><li>Удаление железа и марганца</li><li>Снижение жесткости воды</li><li>Устранение запаха</li><li>Защита техники</li></ul></div>
+  <div class="card result"><h3>Результат</h3><ul><li>Чистая вода без запаха</li><li>Меньше накипи и коррозии</li><li>Комфорт для семьи</li><li>Сервисная поддержка TWG</li></ul></div>
 </div>
 
-<div class="section-title">ÐÐ»Ñ ÐºÐ¾Ð³Ð¾</div>
+<div class="section">Для кого</div>
 <div class="benefits">
-  <div class="benefit"><div class="benefit-icon">í¿ </div><b>{{ object_type }}</b><br>Ð¢Ð¸Ð¿ Ð¾Ð±ÑÐµÐºÑÐ°</div>
-  <div class="benefit"><div class="benefit-icon">í²§</div><b>{{ water_source }}</b><br>ÐÑÑÐ¾ÑÐ½Ð¸Ðº Ð²Ð¾Ð´Ñ</div>
-  <div class="benefit"><div class="benefit-icon">í±¥</div><b>{{ people }}</b><br>ÐÑÐ¾Ð¶Ð¸Ð²Ð°ÑÑÐ¸Ñ</div>
-  <div class="benefit"><div class="benefit-icon">â</div><b>{{ flow_peak }}</b><br>Ð¼Â³/Ñ ÑÐ°ÑÑÐ¾Ð´</div>
+  <div class="benefit"><b>{{ object_type }}</b><br>Тип объекта</div>
+  <div class="benefit"><b>{{ water_source }}</b><br>Источник воды</div>
+  <div class="benefit"><b>{{ people }}</b><br>Проживающих</div>
+  <div class="benefit"><b>{{ flow_peak }}</b><br>м³/ч расход</div>
 </div>
 
-<div class="section-title">ÐÐ°Ðº ÑÐ°Ð±Ð¾ÑÐ°ÐµÑ ÑÐ¸ÑÑÐµÐ¼Ð°</div>
+<div class="section">Как работает система</div>
 <div class="flow">
-  <div class="step">í²§<br><b>Ð¡ÐºÐ²Ð°Ð¶Ð¸Ð½Ð°</b></div>
+  <div class="step"><b>Скважина</b></div>
   {% for item in equipment %}
-  <div class="arrow">â</div>
-  <div class="step">
-    <b>{{ loop.index }}</b><br>
-    {{ item.name }}<br>
-    <small>{{ item.code }}</small>
-  </div>
+  <div class="arrow">→</div><div class="step"><b>{{ loop.index }}</b><br>{{ item.name }}<br><small>{{ item.code }}</small></div>
   {% endfor %}
-  <div class="arrow">â</div>
-  <div class="step">í¿ <br><b>ÐÐ¾Ð´Ð°ÑÐ° Ð² Ð´Ð¾Ð¼</b></div>
+  <div class="arrow">→</div><div class="step"><b>Подача в дом</b></div>
 </div>
 
-<div class="section-title">ÐÐ¾Ð´Ð¾Ð±ÑÐ°Ð½Ð½Ð¾Ðµ Ð¾Ð±Ð¾ÑÑÐ´Ð¾Ð²Ð°Ð½Ð¸Ðµ</div>
+<div class="section">Подобранное оборудование</div>
 <div class="equipment-grid">
-  {% for item in equipment %}
+{% for item in equipment %}
   <div class="equipment">
-    <div class="eq-photo">Ð¤Ð¾ÑÐ¾<br>{{ item.code }}</div>
-    <b>{{ item.name }}</b><br>
-    <small>{{ item.code }}</small>
+    <div class="eq-photo">{{ item.code }}</div>
+    <b>{{ item.name }}</b><br><small>{{ item.code }}</small>
     <p>{{ item.description }}</p>
-    <b>{{ item.qty }} ÑÑ. Â· {{ item.sum_text }}</b>
+    <b>{{ item.qty }} шт. · {{ item.sum_text }}</b>
   </div>
-  {% endfor %}
+{% endfor %}
 </div>
 
-<div class="section-title">ÐÐ¾Ð¼Ð¿Ð»ÐµÐºÑÐ°ÑÐ¸Ñ Ð¸ ÑÑÐ¾Ð¸Ð¼Ð¾ÑÑÑ</div>
+<div class="section">Комплектация и стоимость</div>
 <table>
-  <thead>
-    <tr>
-      <th>â</th>
-      <th>ÐÐ°Ð¸Ð¼ÐµÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ</th>
-      <th>ÐÐ¾Ð»-Ð²Ð¾</th>
-      <th>Ð¦ÐµÐ½Ð°</th>
-      <th>Ð¡ÑÐ¼Ð¼Ð°</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in equipment %}
-    <tr>
-      <td>{{ loop.index }}</td>
-      <td>{{ item.name }}</td>
-      <td>{{ item.qty }}</td>
-      <td>{{ item.price_text }}</td>
-      <td>{{ item.sum_text }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
+<thead><tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
+<tbody>{% for item in equipment %}<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>{{ item.price_text }}</td><td>{{ item.sum_text }}</td></tr>{% endfor %}</tbody>
 </table>
 
 <div class="grid3">
-  <div class="card">
-    <h3>ÐÐ½Ð°Ð»Ð¸Ð· Ð²Ð¾Ð´Ñ</h3>
-    <table>
-      {% for row in water_rows %}
-      <tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>
-      {% endfor %}
-    </table>
-  </div>
-  <div class="card">
-    <h3>ÐÐ°ÑÐ°Ð½ÑÐ¸Ð¸ TWG</h3>
-    <ul>
-      <li>ÐÐ¾Ð´Ð±Ð¾Ñ Ð¿Ð¾ ÑÐµÐ·ÑÐ»ÑÑÐ°ÑÐ°Ð¼ Ð°Ð½Ð°Ð»Ð¸Ð·Ð° Ð²Ð¾Ð´Ñ</li>
-      <li>Ð¡ÐµÑÑÐ¸ÑÐ¸ÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð½Ð¾Ðµ Ð¾Ð±Ð¾ÑÑÐ´Ð¾Ð²Ð°Ð½Ð¸Ðµ</li>
-      <li>Ð¢ÐµÑÐ½Ð¸ÑÐµÑÐºÐ°Ñ Ð¿Ð¾Ð´Ð´ÐµÑÐ¶ÐºÐ°</li>
-      <li>ÐÐ¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ÑÑÑ ÑÐµÑÐ²Ð¸ÑÐ½Ð¾Ð³Ð¾ Ð¾Ð±ÑÐ»ÑÐ¶Ð¸Ð²Ð°Ð½Ð¸Ñ</li>
-    </ul>
-  </div>
-  <div class="price-box">
-    <div>ÐÑÐ¾Ð³Ð¾ Ð¿Ð¾ ÐºÐ¾Ð¼Ð¿Ð»ÐµÐºÑÑ</div>
-    <div class="price">{{ total_text }}</div>
-    <p>Ð¡ÑÐ¾Ð¸Ð¼Ð¾ÑÑÑ Ð¼Ð¾Ð¶ÐµÑ ÐºÐ¾ÑÑÐµÐºÑÐ¸ÑÐ¾Ð²Ð°ÑÑÑÑ Ð¿Ð¾ÑÐ»Ðµ Ð¾ÑÐ¼Ð¾ÑÑÐ° Ð¾Ð±ÑÐµÐºÑÐ° Ð¸ ÑÐ¾Ð³Ð»Ð°ÑÐ¾Ð²Ð°Ð½Ð¸Ñ Ð¼Ð¾Ð½ÑÐ°Ð¶Ð°.</p>
-  </div>
+  <div class="card"><h3>Анализ воды</h3><table>{% for row in water_rows %}<tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>{% endfor %}</table></div>
+  <div class="card"><h3>Гарантии TWG</h3><ul><li>Подбор по анализу воды</li><li>Сертифицированное оборудование</li><li>Техническая поддержка</li><li>Сервисное обслуживание</li></ul></div>
+  <div class="price-box"><div>Итого по комплекту</div><div class="price">{{ total_text }}</div><p>Стоимость может корректироваться после осмотра объекта.</p></div>
 </div>
 
 <div class="footer">
-  <div><b>Terra Water Group</b><br>Ð§Ð¸ÑÑÐ°Ñ Ð²Ð¾Ð´Ð° Ð´Ð»Ñ Ð²Ð°ÑÐµÐ¹ ÑÐµÐ¼ÑÐ¸</div>
+  <div><b>Terra Water Group</b><br>Чистая вода для вашей семьи</div>
   <div><b>{{ manager_name }}</b><br>{{ manager_phone }}<br>{{ manager_email }}</div>
 </div>
 
