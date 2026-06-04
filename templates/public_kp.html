@@ -7,7 +7,7 @@
 body{margin:0;background:#edf5fb;font-family:Arial,sans-serif;color:#102033}
 .page{width:297mm;min-height:210mm;margin:0 auto 12px;background:white;padding:8mm;overflow:hidden}
 .print-btn{background:#005bbb;color:white;border:0;border-radius:10px;padding:10px 18px;font-weight:800;margin-bottom:8px;cursor:pointer}
-.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;height:78mm;border-radius:22px;padding:18px;background:linear-gradient(135deg,#fff,#eaf6ff);border:1px solid #d7e8fa}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;height:68mm;margin-bottom:12mm;border-radius:22px;padding:18px;background:linear-gradient(135deg,#fff,#eaf6ff);border:1px solid #d7e8fa}
 .logo img{height:62px;width:auto}
 .title{font-size:30px;line-height:1.05;font-weight:900;color:#003c7a;margin-top:14px}
 .subtitle{font-size:14px;margin-top:10px;color:#234}
@@ -60,9 +60,12 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 
 <div class="grid3">
-  <div class="card problem"><h3>Проблема</h3><ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul></div>
-  <div class="card"><h3>Решение</h3><ul><li>Удаление железа и марганца</li><li>Снижение жесткости воды</li><li>Устранение запаха</li><li>Защита техники</li></ul></div>
-  <div class="card result"><h3>Результат</h3><ul><li>Чистая вода без запаха</li><li>Меньше накипи и коррозии</li><li>Комфорт для семьи</li><li>Сервисная поддержка TWG</li></ul></div>
+  <div class="card problem">
+<img src="{{ problem_uri }}" style="height:50px;margin-bottom:8px;"><ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul></div>
+  <div class="card">
+<img src="{{ solution_uri }}" style="height:50px;margin-bottom:8px;"><ul><li>Удаление железа и марганца</li><li>Снижение жесткости воды</li><li>Устранение запаха</li><li>Защита техники</li></ul></div>
+  <div class="card result">
+<img src="{{ result_uri }}" style="height:50px;margin-bottom:8px;"><ul><li>Чистая вода без запаха</li><li>Меньше накипи и коррозии</li><li>Комфорт для семьи</li><li>Сервисная поддержка TWG</li></ul></div>
 </div>
 
 <div class="section">Для кого</div>
