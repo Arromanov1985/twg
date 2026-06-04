@@ -4,34 +4,34 @@
 <meta charset="utf-8">
 <style>
 body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
-.page{width:297mm;min-height:210mm;margin:auto;background:white;padding:10mm;box-sizing:border-box}
-.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;border:1px solid #d7e8fa;border-radius:24px;padding:28px;background:linear-gradient(135deg,#fff,#eaf6ff)}
-.logo{font-size:44px;font-weight:900;color:#003c7a}
-.title{font-size:34px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
-.subtitle{font-size:18px;margin-top:12px}
-.house{border-radius:22px;background:linear-gradient(135deg,#003c7a,#009fe3);color:white;display:flex;align-items:center;justify-content:center;text-align:center;font-size:28px;font-weight:900}
+.page{width:297mm;min-height:210mm;margin:auto;background:white;padding:7mm;box-sizing:border-box}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;border:1px solid #d7e8fa;border-radius:24px;padding:10px;background:linear-gradient(135deg,#fff,#eaf6ff)}
+.logo{font-size:32px;font-weight:900;color:#003c7a}
+.title{font-size:25px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
+.subtitle{font-size:11px;margin-top:12px}
+.house{border-radius:22px;background:linear-gradient(135deg,#003c7a,#009fe3);color:white;display:flex;align-items:center;justify-content:center;text-align:center;font-size:20px;font-weight:900}
 .meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
 .meta div{border:1px solid #d7e8fa;border-radius:12px;padding:10px 14px;background:white}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
-.card{border:1px solid #d7e8fa;border-radius:18px;padding:20px;background:white}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.card{border:1px solid #d7e8fa;border-radius:18px;padding:12px;background:white}
 .card h3{margin-top:0;color:#003c7a}
 .problem h3{color:#d93636}.result h3{color:#238636}
-.section{font-size:26px;font-weight:900;color:#003c7a;margin:34px 0 16px}
-.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.benefit{border:1px solid #d7e8fa;border-radius:16px;padding:18px;text-align:center}
+.section{font-size:20px;font-weight:900;color:#003c7a;margin:18px 0 8px}
+.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.benefit{border:1px solid #d7e8fa;border-radius:16px;padding:10px;text-align:center}
 .flow{display:flex;gap:12px;overflow-x:auto}
-.step{min-width:135px;border:1px solid #d7e8fa;border-radius:16px;padding:14px;text-align:center}
+.step{min-width:95px;border:1px solid #d7e8fa;border-radius:16px;padding:14px;text-align:center}
 .arrow{display:flex;align-items:center;font-size:24px;color:#0078d4;font-weight:900}
-.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.equipment{border:1px solid #d7e8fa;border-radius:16px;padding:16px}
-.eq-photo{height:115px;background:#eef6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#0078d4;font-weight:800;margin-bottom:12px}
-.price-box{background:#003c7a;color:white;border-radius:18px;padding:24px;text-align:center}
-.price{font-size:42px;font-weight:900}
+.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.equipment{border:1px solid #d7e8fa;border-radius:16px;padding:10px}
+.eq-photo{height:70px;background:#eef6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#0078d4;font-weight:800;margin-bottom:12px}
+.price-box{background:#003c7a;color:white;border-radius:18px;padding:14px;text-align:center}
+.price{font-size:20px;font-weight:900}
 table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{border:1px solid #d7e8fa;padding:9px;font-size:14px}
+th,td{border:1px solid #d7e8fa;padding:9px;font-size:11px}
 th{background:#eef6ff;color:#003c7a}
-.footer{margin-top:30px;padding:22px;background:#eef6ff;border-radius:18px;display:flex;justify-content:space-between}
-.print-btn{background:#005bbb;color:white;border:none;padding:13px 22px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:16px}
+.footer{margin-top:30px;padding:12px;background:#eef6ff;border-radius:18px;display:flex;justify-content:space-between}
+.print-btn{background:#005bbb;color:white;border:none;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:16px}
 @media print{.print-btn{display:none}.page{padding:10mm}.card,.equipment,.step,table{page-break-inside:avoid}}
 
 @page{
@@ -53,6 +53,26 @@ th{background:#eef6ff;color:#003c7a}
     .print-btn{
         display:none;
     }
+}
+
+.hero{grid-template-columns:1.3fr .7fr}
+.house{height:120px}
+.card ul{margin:0;padding-left:16px}
+.card li{margin-bottom:3px}
+.benefit{font-size:11px}
+.step{font-size:10px;line-height:1.2}
+.arrow{font-size:16px}
+th,td{padding:5px;font-size:10px}
+.footer{font-size:11px}
+.price-box p{font-size:10px;margin:6px 0 0}
+.print-btn{padding:8px 14px;margin-bottom:8px}
+.compact-note{font-size:10px}
+@page{size:A4 landscape;margin:7mm}
+@media print{
+  body{background:white}
+  .page{width:100%;min-height:auto;padding:0}
+  .print-btn{display:none}
+  .hero,.card,.step,table,.price-box{page-break-inside:avoid}
 }
 </style>
 
@@ -94,7 +114,7 @@ th{background:#eef6ff;color:#003c7a}
 <div class="flow">
   <div class="step"><b>Скважина</b></div>
   {% for item in equipment %}
-  <div class="arrow">→</div><div class="step"><b>{{ loop.index }}</b><br>{{ item.name }}<br><small>{{ item.code }}</small></div>
+  <div class="arrow">→</div><div class="step"><b>{{ loop.index }}</b><br><small>{{ item.code }}</small></div>
   {% endfor %}
   <div class="arrow">→</div><div class="step"><b>Подача в дом</b></div>
 </div>
