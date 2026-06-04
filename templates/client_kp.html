@@ -66,9 +66,30 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 
 <div class="grid3">
-  <div class="card"><img src="{{ problem_uri }}"><ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul></div>
-  <div class="card"><img src="{{ solution_uri }}"><ul><li>Удаление железа и марганца</li><li>Снижение жесткости воды</li><li>Устранение запаха</li><li>Защита бытовой техники</li></ul></div>
-  <div class="card"><img src="{{ result_uri }}"><ul><li>Чистая вода без запаха</li><li>Меньше накипи и коррозии</li><li>Комфорт для семьи</li><li>Сервисная поддержка TWG</li></ul></div>
+  <div class="card problem-card">
+    <h3 class="problem-title">Проблема</h3>
+    <ul>{% for item in problems %}<li>{{ item }}</li>{% endfor %}</ul>
+  </div>
+
+  <div class="card solution-card">
+    <h3 class="solution-title">Решение</h3>
+    <ul>
+      <li>Удаление железа и марганца</li>
+      <li>Снижение жесткости воды</li>
+      <li>Устранение запаха</li>
+      <li>Защита бытовой техники</li>
+    </ul>
+  </div>
+
+  <div class="card result-card">
+    <h3 class="result-title">Результат</h3>
+    <ul>
+      <li>Чистая вода без запаха</li>
+      <li>Меньше накипи и коррозии</li>
+      <li>Комфорт для семьи</li>
+      <li>Сервисная поддержка TWG</li>
+    </ul>
+  </div>
 </div>
 </div>
 
