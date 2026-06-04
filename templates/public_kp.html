@@ -74,6 +74,27 @@ th,td{padding:5px;font-size:10px}
   .print-btn{display:none}
   .hero,.card,.step,table,.price-box{page-break-inside:avoid}
 }
+
+.page-break{
+  break-before: page;
+  page-break-before: always;
+}
+@media screen{
+  .page-break{
+    height:24px;
+    border-top:2px dashed #d7e8fa;
+    margin-top:18px;
+  }
+}
+@media print{
+  .page-break{
+    break-before: page;
+    page-break-before: always;
+    height:0;
+    margin:0;
+    border:0;
+  }
+}
 </style>
 
 </head>
@@ -119,6 +140,7 @@ th,td{padding:5px;font-size:10px}
   <div class="arrow">→</div><div class="step"><b>Подача в дом</b></div>
 </div>
 
+<div class="page-break"></div>
 <div class="section">Комплектация и стоимость</div>
 <table>
 <thead><tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
