@@ -739,7 +739,11 @@ def calculations_history_panel(current_user: dict):
                     if k in {
                         "product_line",
                         "analysis_date",
-                        "analysis_number"
+                        "analysis_number",
+                        "people",
+                        "address",
+                        "region_subject",
+                        "federal_district",
                     }:
                         continue
                     label = PARAMETER_NAMES.get(k, k)
