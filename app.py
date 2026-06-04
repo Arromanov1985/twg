@@ -1492,20 +1492,42 @@ def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[
 
     st.info("Ссылки появятся после сохранения расчёта в базу. В веб-КП можно выбрать: Печать → Сохранить как PDF.")
 
-    st.markdown("### Как пользоваться")
-    st.write("1. Нажмите «Сохранить расчёт в базу».")
-    st.write("2. Откройте раздел «История расчётов».")
-    st.write("3. Выберите расчёт и скопируйте ссылку Client или Partner.")
-
     col1, col2 = st.columns(2)
+
+    base_url = "https://xtwwfwenhzukhsngtysoqg.streamlit.app"
+
+    client_demo = f"{base_url}/?kp_type=client"
+    partner_demo = f"{base_url}/?kp_type=partner"
 
     with col1:
         st.markdown("### КП для клиента")
         st.success("Client-ссылка: розничное КП для клиента.")
+        st.text_input(
+            "Client",
+            value=client_demo,
+            disabled=True,
+            key="client_demo_link",
+        )
+        st.link_button(
+            "Открыть Client КП",
+            client_demo,
+            width="stretch",
+        )
 
     with col2:
         st.markdown("### КП для партнёра")
         st.success("Partner-ссылка: КП с партнёрскими ценами и маржой.")
+        st.text_input(
+            "Partner",
+            value=partner_demo,
+            disabled=True,
+            key="partner_demo_link",
+        )
+        st.link_button(
+            "Открыть Partner КП",
+            partner_demo,
+            width="stretch",
+        )
 
 
 def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
