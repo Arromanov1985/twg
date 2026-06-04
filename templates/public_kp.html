@@ -3,143 +3,51 @@
 <head>
 <meta charset="utf-8">
 <style>
-body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
-.page{width:297mm;min-height:210mm;margin:auto;background:white;padding:7mm;box-sizing:border-box}
-.hero{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;border:1px solid #d7e8fa;border-radius:24px;padding:14px;background:linear-gradient(135deg,#ffffff 0%,#eef8ff 100%);overflow:hidden}
-.hero-left{position:relative;z-index:2}
-.hero-visual{min-height:155px;border-radius:22px;background:linear-gradient(135deg,rgba(0,60,122,.92),rgba(0,159,227,.85)),linear-gradient(135deg,#ddefff,#ffffff);display:flex;align-items:center;justify-content:center;position:relative}
-.hero-visual:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.35),transparent 35%),linear-gradient(145deg,transparent 0 40%,rgba(255,255,255,.16) 40% 60%,transparent 60%);opacity:.9}
-.house-card{position:relative;z-index:2;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.7);border-radius:18px;padding:14px 20px;display:flex;gap:12px;align-items:center;color:#003c7a;box-shadow:0 8px 24px rgba(0,45,90,.16)}
-.house-icon{font-size:30px;font-weight:900;color:#005bbb}
-.house-card b{font-size:16px}
-.house-card span{font-size:12px;color:#0078d4;font-weight:700}
-.logo img{height:75px;width:auto;display:block}
-.title{font-size:25px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
-.subtitle{font-size:11px;margin-top:12px}
-.house{border-radius:22px;background:linear-gradient(135deg,#003c7a,#009fe3);color:white;display:flex;align-items:center;justify-content:center;text-align:center;font-size:20px;font-weight:900}
-.meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-.meta div{border:1px solid #d7e8fa;border-radius:12px;padding:10px 14px;background:white}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.card{border:1px solid #d7e8fa;border-radius:18px;padding:12px;background:white}
-.card h3{margin-top:0;color:#003c7a}
-.problem h3{color:#d93636}.result h3{color:#238636}
-.section{font-size:20px;font-weight:900;color:#003c7a;margin:18px 0 8px}
-.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.benefit{border:1px solid #d7e8fa;border-radius:16px;padding:10px;text-align:center}
-.flow{display:flex;gap:12px;overflow-x:auto}
-.step{min-width:95px;border:1px solid #d7e8fa;border-radius:16px;padding:14px;text-align:center}
-.arrow{display:flex;align-items:center;font-size:24px;color:#0078d4;font-weight:900}
-.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.equipment{border:1px solid #d7e8fa;border-radius:16px;padding:10px}
-.eq-photo{height:70px;background:#eef6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#0078d4;font-weight:800;margin-bottom:12px}
-.price-box{background:#003c7a;color:white;border-radius:18px;padding:14px;text-align:center}
-.price{font-size:20px;font-weight:900}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{border:1px solid #d7e8fa;padding:9px;font-size:11px}
-th{background:#eef6ff;color:#003c7a}
-.footer{margin-top:30px;padding:12px;background:#eef6ff;border-radius:18px;display:flex;justify-content:space-between}
-.print-btn{background:#005bbb;color:white;border:none;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:16px}
-@media print{.print-btn{display:none}.page{padding:10mm}.card,.equipment,.step,table{page-break-inside:avoid}}
-
-@page{
-    size:A4 landscape;
-    margin:10mm;
-}
-
-@media print{
-    body{
-        background:white;
-    }
-
-    .page{
-        width:100%;
-        min-height:auto;
-        padding:0;
-    }
-
-    .print-btn{
-        display:none;
-    }
-}
-
-.hero{grid-template-columns:1.3fr .7fr}
-.house{height:120px}
-.card ul{margin:0;padding-left:16px}
+*{box-sizing:border-box}
+body{margin:0;background:#edf5fb;font-family:Arial,sans-serif;color:#102033}
+.page{width:297mm;min-height:210mm;margin:0 auto 12px;background:white;padding:8mm;overflow:hidden}
+.print-btn{background:#005bbb;color:white;border:0;border-radius:10px;padding:10px 18px;font-weight:800;margin-bottom:8px;cursor:pointer}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;height:78mm;border-radius:22px;padding:18px;background:linear-gradient(135deg,#fff,#eaf6ff);border:1px solid #d7e8fa}
+.logo img{height:62px;width:auto}
+.title{font-size:30px;line-height:1.05;font-weight:900;color:#003c7a;margin-top:14px}
+.subtitle{font-size:14px;margin-top:10px;color:#234}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta div{background:white;border:1px solid #d7e8fa;border-radius:10px;padding:7px 10px;font-size:11px}
+.house-img{width:100%;height:100%;object-fit:cover;border-radius:18px}
+.section{font-size:21px;font-weight:900;color:#003c7a;margin:14px 0 8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{border:1px solid #d7e8fa;border-radius:14px;padding:12px;background:#fff}
+.card h3{margin:0 0 7px;color:#003c7a;font-size:15px}
+.card ul{margin:0;padding-left:16px;font-size:11px}
 .card li{margin-bottom:3px}
-.benefit{font-size:11px}
-.step{font-size:10px;line-height:1.2}
-.arrow{font-size:16px}
-th,td{padding:5px;font-size:10px}
-.footer{font-size:11px}
-.price-box p{font-size:10px;margin:6px 0 0}
-.print-btn{padding:8px 14px;margin-bottom:8px}
-.compact-note{font-size:10px}
+.problem h3{color:#d93636}.result h3{color:#238636}
+.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.benefit{border:1px solid #d7e8fa;border-radius:14px;padding:10px;text-align:center;font-size:12px;background:#fff}
+.flow{display:flex;gap:7px;align-items:stretch;overflow:hidden}
+.step{min-width:92px;border:1px solid #d7e8fa;border-radius:12px;padding:8px;text-align:center;font-size:10px;background:#fff}
+.arrow{display:flex;align-items:center;color:#0078d4;font-weight:900}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #d7e8fa;padding:6px;font-size:10px}
+th{background:#eef6ff;color:#003c7a}
+.price-box{background:#003c7a;color:white;border-radius:18px;padding:18px;text-align:center}
+.price{font-size:34px;font-weight:900}
+.service-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.footer{margin-top:12px;background:#eef6ff;border-radius:16px;padding:16px;display:flex;justify-content:space-between;font-size:12px}
+.page-break{page-break-before:always;break-before:page}
 @page{size:A4 landscape;margin:7mm}
-@media print{
-  body{background:white}
-  .page{width:100%;min-height:auto;padding:0}
-  .print-btn{display:none}
-  .hero,.card,.step,table,.price-box{page-break-inside:avoid}
-}
-
-.page-break{
-  break-before: page;
-  page-break-before: always;
-}
-@media screen{
-  .page-break{
-    height:24px;
-    border-top:2px dashed #d7e8fa;
-    margin-top:18px;
-  }
-}
-@media print{
-  .page-break{
-    break-before: page;
-    page-break-before: always;
-    height:0;
-    margin:0;
-    border:0;
-  }
-}
-
-.partner-totals{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:12px;
-}
-.partner-totals div{
-  border:1px solid #d7e8fa;
-  border-radius:14px;
-  padding:12px;
-  background:#eef6ff;
-}
-.partner-totals span{
-  display:block;
-  color:#003c7a;
-  font-weight:800;
-  margin-bottom:6px;
-}
-.partner-totals b{
-  font-size:22px;
-  color:#003c7a;
-}
+@media print{body{background:white}.print-btn{display:none}.page{margin:0;width:100%;min-height:190mm;padding:0}.page-break{page-break-before:always;break-before:page}.card,.benefit,.step,table{page-break-inside:avoid}}
 </style>
-
 </head>
 <body>
+
 <div class="page">
 <button class="print-btn" onclick="window.print()">Печать / Сохранить PDF</button>
 
 <div class="hero">
-  <div class="hero-left">
-    <div class="logo"><img src="{{ logo_uri }}" alt="Terra Water Group"></div>
-
+  <div>
+    <div class="logo"><img src="{{ logo_uri }}" alt="TWG"></div>
     <div class="title">Коммерческое предложение<br>Система очистки воды<br>для частного дома</div>
-
     <div class="subtitle">Подбор оборудования на основании анализа воды и параметров объекта</div>
-
     <div class="meta">
       <div><b>Дата КП:</b> {{ date }}</div>
       <div><b>Клиент:</b> {{ client_name }}</div>
@@ -148,16 +56,7 @@ th,td{padding:5px;font-size:10px}
       <div><b>Номер КП:</b> {{ kp_number }}</div>
     </div>
   </div>
-
-  <div class="hero-visual">
-    <div class="house-card">
-      <div class="house-icon">⌂</div>
-      <div>
-        <b>Частный дом</b><br>
-        <span>чистая вода для семьи</span>
-      </div>
-    </div>
-  </div>
+  <div><img class="house-img" src="{{ house_uri }}" alt="Загородный дом"></div>
 </div>
 
 <div class="grid3">
@@ -180,75 +79,54 @@ th,td{padding:5px;font-size:10px}
   {% for item in equipment %}
   <div class="arrow">→</div><div class="step"><b>{{ loop.index }}</b><br><small>{{ item.code }}</small></div>
   {% endfor %}
-  <div class="arrow">→</div><div class="step"><b>Подача в дом</b></div>
+  <div class="arrow">→</div><div class="step"><b>Дом</b></div>
+</div>
 </div>
 
-<div class="page-break"></div>
+<div class="page page-break">
 <div class="section">Комплектация и стоимость</div>
+
 <table>
 <thead>
 {% if kp_type == "partner" %}
-<tr>
-  <th>№</th>
-  <th>Наименование</th>
-  <th>Кол-во</th>
-  <th>Цена розница</th>
-  <th>Цена партнер</th>
-  <th>Сумма партнер</th>
-</tr>
+<tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена розница</th><th>Цена партнер</th><th>Сумма партнер</th></tr>
 {% else %}
-<tr>
-  <th>№</th>
-  <th>Наименование</th>
-  <th>Кол-во</th>
-  <th>Цена</th>
-  <th>Сумма</th>
-</tr>
+<tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
 {% endif %}
 </thead>
 <tbody>
 {% for item in equipment %}
 {% if kp_type == "partner" %}
-<tr>
-  <td>{{ loop.index }}</td>
-  <td>{{ item.name }}</td>
-  <td>{{ item.qty }}</td>
-  <td>{{ item.retail_price_text }}</td>
-  <td>{{ item.price_text }}</td>
-  <td>{{ item.sum_text }}</td>
-</tr>
+<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>{{ item.retail_price_text }}</td><td>{{ item.price_text }}</td><td>{{ item.sum_text }}</td></tr>
 {% else %}
-<tr>
-  <td>{{ loop.index }}</td>
-  <td>{{ item.name }}</td>
-  <td>{{ item.qty }}</td>
-  <td>{{ item.price_text }}</td>
-  <td>{{ item.sum_text }}</td>
-</tr>
+<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>{{ item.price_text }}</td><td>{{ item.sum_text }}</td></tr>
 {% endif %}
 {% endfor %}
 </tbody>
 </table>
 
-{% if kp_type == "partner" %}
-<div class="partner-totals">
-  <div><span>Итого розница</span><b>{{ retail_total_text }}</b></div>
-  <div><span>Итого партнер</span><b>{{ partner_total_text }}</b></div>
-  <div><span>Ваша выгода</span><b>{{ benefit_total_text }}</b></div>
-</div>
-{% endif %}
-
-<div class="grid3">
+<div class="grid3" style="margin-top:14px">
   <div class="card"><h3>Анализ воды</h3><table>{% for row in water_rows %}<tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>{% endfor %}</table></div>
   <div class="card"><h3>Гарантии TWG</h3><ul><li>Подбор по анализу воды</li><li>Сертифицированное оборудование</li><li>Техническая поддержка</li><li>Сервисное обслуживание</li></ul></div>
-  <div class="price-box"><div>Итого по комплекту</div><div class="price">{{ total_text }}</div><p>Стоимость может корректироваться после осмотра объекта.</p></div>
+  <div class="price-box"><div>Итого по комплекту</div><div class="price">{{ total_text }}</div>{% if kp_type == "partner" %}<p>Розница: {{ retail_total_text }}<br>Партнер: {{ partner_total_text }}<br>Выгода: {{ benefit_total_text }}</p>{% endif %}</div>
+</div>
+</div>
+
+<div class="page page-break">
+<div class="section">Гарантии и сервис</div>
+
+<div class="service-grid">
+  <div class="card"><h3>Что получает клиент</h3><ul><li>Подбор оборудования под анализ воды</li><li>Понятная комплектация</li><li>Защита сантехники и бытовой техники</li><li>Вода без запаха и примесей</li></ul></div>
+  <div class="card"><h3>Рекомендации по обслуживанию</h3><ul><li>Проверять соль 1 раз в 2–4 недели</li><li>Не допускать полного опустошения солевого бака</li><li>Менять картриджи по мере загрязнения</li><li>Проводить сервис не реже 1 раза в год</li></ul></div>
+  <div class="card"><h3>Поддержка TWG</h3><ul><li>Консультация инженера</li><li>Помощь при эксплуатации</li><li>Подбор расходных материалов</li><li>Техническое сопровождение</li></ul></div>
+  <div class="card"><h3>Важно</h3><ul><li>Стоимость может корректироваться после осмотра объекта</li><li>Монтаж и дополнительные материалы согласуются отдельно</li><li>Комплектация может уточняться после финального анализа воды</li></ul></div>
 </div>
 
 <div class="footer">
   <div><b>Terra Water Group</b><br>Чистая вода для вашей семьи</div>
   <div><b>{{ manager_name }}</b><br>{{ manager_phone }}<br>{{ manager_email }}</div>
 </div>
-
 </div>
+
 </body>
 </html>

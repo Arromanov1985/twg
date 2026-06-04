@@ -1793,6 +1793,7 @@ def render_public_kp_page(kp_id: str) -> None:
         "water_rows": water_rows,
         "total_text": money(total),
         "logo_uri": _asset_to_base64(BASE_DIR / "assets" / "twg_logo.png"),
+        "house_uri": _asset_to_base64(BASE_DIR / "assets" / "house.jpg"),
         "retail_total_text": money(calc.get("retail_total") or 0),
         "partner_total_text": money(calc.get("partner_total") or 0),
         "benefit_total_text": money(calc.get("benefit_total") or 0),
