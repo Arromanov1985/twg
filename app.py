@@ -8,6 +8,39 @@ from typing import Any
 import pandas as pd
 from jinja2 import Template
 import streamlit as st
+
+
+st.markdown("""
+<style>
+
+/* Убираем верхнюю панель Streamlit */
+header,
+[data-testid="stHeader"],
+[data-testid="stToolbar"]{
+    display:none !important;
+}
+
+/* Меню справа */
+#MainMenu{
+    visibility:hidden !important;
+}
+
+/* Footer */
+footer{
+    visibility:hidden !important;
+}
+
+/* GitHub, Fork, Deploy */
+.stAppDeployButton,
+[data-testid="baseButton-header"],
+[data-testid="baseButton-headerNoPadding"]{
+    display:none !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 from supabase import create_client
 from src.kp_generator import build_kp_context, render_kp_html, html_to_pdf_bytes
 
