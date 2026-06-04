@@ -1484,68 +1484,24 @@ def build_client_form() -> dict[str, Any]:
 
 
 def export_kp_block(selected_df: pd.DataFrame, reasons: list[str], values: dict[str, Any], client_data: dict[str, Any], analysis: pd.DataFrame) -> None:
-    st.subheader("Формирование КП")
-    analysis_for_kp = enrich_analysis_for_kp(analysis, values)
+    st.subheader("Ссылки на веб-КП")
+
+    st.info("Ссылки появятся после сохранения расчёта в базу. В веб-КП можно выбрать: Печать → Сохранить как PDF.")
+
+    st.markdown("### Как пользоваться")
+    st.write("1. Нажмите «Сохранить расчёт в базу».")
+    st.write("2. Откройте раздел «История расчётов».")
+    st.write("3. Выберите расчёт и скопируйте ссылку Client или Partner.")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("**КП для клиента**")
-        client_context = build_kp_context(
-            client_data=client_data,
-            values=values,
-            analysis_df=analysis_for_kp,
-            selected_df=selected_df,
-            reasons=reasons,
-            base_dir=BASE_DIR,
-            kp_type="client",
-        )
-        client_html = render_kp_html(client_context, BASE_DIR / "templates" / "kp_template.html")
-
-        try:
-            client_pdf = html_to_pdf_bytes(client_html, base_dir=BASE_DIR)
-            st.download_button(
-                "Скачать КП для клиента PDF",
-                data=client_pdf,
-                file_name="KP_TerraWater_client.pdf",
-                mime="application/pdf",
-                width="stretch",
-            )
-        except Exception as exc:
-            st.warning("PDF для клиента не сформировался.")
-            st.caption(str(exc))
+        st.markdown("### КП для клиента")
+        st.success("Client-ссылка: розничное КП для клиента.")
 
     with col2:
-        st.markdown("**КП для партнера**")
-        partner_context = build_kp_context(
-            client_data=client_data,
-            values=values,
-            analysis_df=analysis_for_kp,
-            selected_df=selected_df,
-            reasons=reasons,
-            base_dir=BASE_DIR,
-            kp_type="partner",
-        )
-        partner_html = render_kp_html(partner_context, BASE_DIR / "templates" / "kp_template.html")
-
-        try:
-            partner_pdf = html_to_pdf_bytes(partner_html, base_dir=BASE_DIR)
-            st.download_button(
-                "Скачать КП для партнера PDF",
-                data=partner_pdf,
-                file_name="KP_TerraWater_partner.pdf",
-                mime="application/pdf",
-                width="stretch",
-            )
-        except Exception as exc:
-            st.warning("PDF для партнера не сформировался.")
-            st.caption(str(exc))
-
-    if st.checkbox("Показать HTML-превью клиентского КП"):
-        st.components.v1.html(client_html, height=900, scrolling=True)
-
-    if st.checkbox("Показать HTML-превью партнерского КП"):
-        st.components.v1.html(partner_html, height=900, scrolling=True)
+        st.markdown("### КП для партнёра")
+        st.success("Partner-ссылка: КП с партнёрскими ценами и маржой.")
 
 
 def build_stage_selection(catalog: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
