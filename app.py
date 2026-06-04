@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from jinja2 import Template
 import streamlit as st
 from supabase import create_client
 from src.kp_generator import build_kp_context, render_kp_html, html_to_pdf_bytes
@@ -1622,139 +1623,133 @@ def build_public_kp_number(calc: dict, kp_type: str) -> str:
 
 def render_public_kp_page(kp_id: str) -> None:
     sb = get_supabase_client()
+
     kp_type = st.query_params.get("kp_type", "client")
     if kp_type not in {"client", "partner"}:
         kp_type = "client"
+
     result = sb.table("calculations").select(
         "*, clients(company, client_name, phone, email, address), managers(full_name, phone, email)"
     ).eq("id", kp_id).execute()
 
     rows = result.data or []
     if not rows:
-        st.error("KP not found")
+        st.error("КП не найдено.")
         return
 
     calc = rows[0]
-    kp_number = build_public_kp_number(calc, kp_type)
     client = calc.get("clients") or {}
     manager = calc.get("managers") or {}
     water_data = calc.get("water_data") or {}
     equipment_data = calc.get("equipment_data") or []
 
-    st.markdown("""
-    <style>
-    [data-testid="stSidebar"] {display:none;}
-    [data-testid="collapsedControl"] {display:none;}
-    @media print {
-        button, iframe, [data-testid="stToolbar"] {display:none !important;}
-        .main .block-container {max-width:100% !important; padding:10mm !important;}
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    def money(v):
+        try:
+            return f"{float(v):,.0f} ₽".replace(",", " ")
+        except Exception:
+            return "0 ₽"
 
-    st.title("Коммерческое предложение")
-    st.subheader("Система очистки воды для частного дома")
-    st.caption(f"Номер КП: {kp_number}")
+    def val(key, default=""):
+        return water_data.get(key, default)
 
-    st.components.v1.html(
-        """
-        <button onclick="window.parent.print()" style="background:#005bbb;color:white;padding:12px 22px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;">
-            Print / Save PDF
-        </button>
-        """,
-        height=60,
-    )
+    problems = []
+    try:
+        iron = float(water_data.get("iron") or 0)
+        if iron > 0.3:
+            problems.append(f"Железо: {iron} мг/л — выше рекомендуемого уровня")
+    except Exception:
+        pass
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("### Клиент")
-        st.write(client.get("company") or client.get("client_name") or "")
-        st.write(client.get("phone") or "")
-        st.write(client.get("email") or "")
-        st.write(client.get("address") or "")
+    try:
+        manganese = float(water_data.get("manganese") or 0)
+        if manganese > 0.1:
+            problems.append(f"Марганец: {manganese} мг/л")
+    except Exception:
+        pass
 
-    with c2:
-        st.markdown("### Объект")
-        st.write(f"Проживающих: {water_data.get('people', '')}")
-        st.write(f"Регион: {water_data.get('region_subject', '')}")
-        st.write(f"ФО: {water_data.get('federal_district', '')}")
+    try:
+        hardness = float(water_data.get("hardness") or 0)
+        if hardness > 7:
+            problems.append(f"Жесткость: {hardness} мг-экв/л")
+    except Exception:
+        pass
 
-    with c3:
-        st.markdown("### Стоимость")
+    if water_data.get("odor_h2s"):
+        problems.append("Запах сероводорода требует дополнительной очистки")
+
+    if not problems:
+        problems.append("Параметры воды требуют комплексного подбора оборудования")
+
+    equipment = []
+    for row in equipment_data:
+        qty = float(row.get("qty") or 1)
         if kp_type == "partner":
-            st.metric("Розница", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
-            st.metric("Партнер", f"{float(calc.get('partner_total') or 0):,.0f} руб.".replace(",", " "))
-            st.metric("Выгода", f"{float(calc.get('benefit_total') or 0):,.0f} руб.".replace(",", " "))
+            price = float(row.get("partner_price") or row.get("retail_price") or 0)
         else:
-            st.metric("Итого", f"{float(calc.get('retail_total') or 0):,.0f} руб.".replace(",", " "))
+            price = float(row.get("retail_price") or row.get("price") or 0)
 
-    st.markdown("## Анализ воды")
+        equipment.append({
+            "code": row.get("code") or "",
+            "name": row.get("name") or "",
+            "description": row.get("description") or "",
+            "qty": int(qty),
+            "price_text": money(price),
+            "sum_text": money(price * qty),
+        })
+
     water_rows = []
+    skip = {
+        "product_line",
+        "address",
+        "region_subject",
+        "federal_district",
+        "object_type",
+        "water_source",
+        "analysis_number",
+        "analysis_date",
+        "people",
+    }
+
     for k, v in water_data.items():
-        if k in {"product_line", "address"}:
+        if k in skip:
             continue
+
         label = PARAMETER_NAMES.get(k, k)
         value = v
+
         if k == "odor_h2s":
             try:
                 iv = int(v)
                 value = f"{ODOR_H2S_LABELS.get(iv, v)} ({iv})"
             except Exception:
                 value = v
-        water_rows.append({"Параметр": label, "Значение": value})
-    st.dataframe(water_rows, width="stretch", hide_index=True)
 
-    st.markdown("## Комплектация")
-    if equipment_data:
-        equipment_df = pd.DataFrame(equipment_data)
-        if "stage" in equipment_df.columns:
-            equipment_df = equipment_df.drop(columns=["stage"])
-        if kp_type == "partner":
-            equipment_df = equipment_df.rename(columns={
-                "qty": "Кол-во",
-                "code": "Артикул",
-                "name": "Наименование",
-                "retail_price": "Розница, руб.",
-                "partner_price": "Партнер, руб.",
-                "retail_sum": "Сумма розница, руб.",
-                "partner_sum": "Сумма партнер, руб.",
-                "benefit_sum": "Выгода, руб.",
-                "description": "Назначение",
-            })
-            cols = [
-                "Артикул", "Наименование", "Кол-во",
-                "Розница, руб.", "Партнер, руб.",
-                "Сумма розница, руб.", "Сумма партнер, руб.",
-                "Выгода, руб.", "Назначение"
-            ]
-        else:
-            equipment_df = equipment_df.rename(columns={
-                "qty": "Кол-во",
-                "code": "Артикул",
-                "name": "Наименование",
-                "retail_price": "Цена, руб.",
-                "retail_sum": "Сумма, руб.",
-                "description": "Назначение",
-            })
-            cols = ["Артикул", "Наименование", "Кол-во", "Цена, руб.", "Сумма, руб.", "Назначение"]
+        water_rows.append({"label": label, "value": value})
 
-        equipment_df = equipment_df[[c for c in cols if c in equipment_df.columns]]
-        st.dataframe(equipment_df, width="stretch", hide_index=True)
+    total = calc.get("partner_total") if kp_type == "partner" else calc.get("retail_total")
 
-    st.markdown("## Рекомендации по обслуживанию")
-    for item in [
-        "Проверять наличие таблетированной соли в солевом баке не реже 1 раза в 2-4 недели.",
-        "Не допускать полного опустошения солевого бака.",
-        "Заменять картриджи механической очистки по мере загрязнения.",
-        "Проводить сервисное обслуживание системы не реже 1 раза в год.",
-        "Контролировать давление воды до и после системы.",
-    ]:
-        st.write("- " + item)
+    context = {
+        "date": str(calc.get("created_at") or "")[:10],
+        "client_name": client.get("company") or client.get("client_name") or "Частный клиент",
+        "manager_name": manager.get("full_name") or "",
+        "manager_phone": manager.get("phone") or "",
+        "manager_email": manager.get("email") or "",
+        "kp_number": build_public_kp_number(calc, kp_type),
+        "object_type": val("object_type", "Частный дом"),
+        "water_source": val("water_source", "Скважина"),
+        "people": val("people", "—"),
+        "flow_peak": val("flow_peak", "—"),
+        "problems": problems,
+        "equipment": equipment,
+        "water_rows": water_rows,
+        "total_text": money(total),
+    }
 
-    st.markdown("## Контакты менеджера")
-    st.write(manager.get("full_name") or "")
-    st.write(manager.get("phone") or "")
-    st.write(manager.get("email") or "")
+    template_path = BASE_DIR / "templates" / "public_kp.html"
+    html = Template(template_path.read_text(encoding="utf-8")).render(**context)
+
+    st.components.v1.html(html, height=3600, scrolling=True)
+
 
 def main() -> None:
     kp_id = st.query_params.get("kp_id")
