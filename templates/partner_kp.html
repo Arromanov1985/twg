@@ -46,6 +46,34 @@ th{background:#eef6ff;color:#003c7a}
   font-size:10px;
   color:#666;
 }
+
+.page{
+  position:relative !important;
+  padding-bottom:22mm !important;
+}
+
+.page::after{
+  content:"";
+  position:absolute;
+  left:8mm;
+  bottom:6mm;
+  width:42mm;
+  height:12mm;
+  background-image:url('{{ logo_uri }}');
+  background-repeat:no-repeat;
+  background-position:left center;
+  background-size:contain;
+}
+
+.page::before{
+  content:"Terra Water Group";
+  position:absolute;
+  right:8mm;
+  bottom:8mm;
+  font-size:10px;
+  color:#6b7280;
+}
+
 </style>
 
 </head>
@@ -101,13 +129,6 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 </div>
 
-
-<div class="page-footer">
-  <img src="{{ logo_uri }}">
-  <div class="page-footer-text">
-    Terra Water Group
-  </div>
-</div>
 
 </body>
 </html>
