@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <style>
 body{margin:0;background:#f3f8ff;font-family:Arial,sans-serif;color:#102033}
-.page{width:210mm;min-height:297mm;margin:auto;background:white;padding:12mm;box-sizing:border-box}
+.page{width:297mm;min-height:210mm;margin:auto;background:white;padding:10mm;box-sizing:border-box}
 .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;border:1px solid #d7e8fa;border-radius:24px;padding:28px;background:linear-gradient(135deg,#fff,#eaf6ff)}
 .logo{font-size:44px;font-weight:900;color:#003c7a}
 .title{font-size:34px;font-weight:900;color:#003c7a;line-height:1.1;margin-top:20px}
@@ -33,7 +33,29 @@ th{background:#eef6ff;color:#003c7a}
 .footer{margin-top:30px;padding:22px;background:#eef6ff;border-radius:18px;display:flex;justify-content:space-between}
 .print-btn{background:#005bbb;color:white;border:none;padding:13px 22px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:16px}
 @media print{.print-btn{display:none}.page{padding:10mm}.card,.equipment,.step,table{page-break-inside:avoid}}
+
+@page{
+    size:A4 landscape;
+    margin:10mm;
+}
+
+@media print{
+    body{
+        background:white;
+    }
+
+    .page{
+        width:100%;
+        min-height:auto;
+        padding:0;
+    }
+
+    .print-btn{
+        display:none;
+    }
+}
 </style>
+
 </head>
 <body>
 <div class="page">
