@@ -95,6 +95,29 @@ th,td{padding:5px;font-size:10px}
     border:0;
   }
 }
+
+.partner-totals{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:12px;
+}
+.partner-totals div{
+  border:1px solid #d7e8fa;
+  border-radius:14px;
+  padding:12px;
+  background:#eef6ff;
+}
+.partner-totals span{
+  display:block;
+  color:#003c7a;
+  font-weight:800;
+  margin-bottom:6px;
+}
+.partner-totals b{
+  font-size:22px;
+  color:#003c7a;
+}
 </style>
 
 </head>
@@ -131,7 +154,7 @@ th,td{padding:5px;font-size:10px}
   <div class="benefit"><b>{{ flow_peak }}</b><br>м³/ч расход</div>
 </div>
 
-<div class="section">Как работает система</div>
+<div class="section">Принципиальная схема монтажа</div>
 <div class="flow">
   <div class="step"><b>Скважина</b></div>
   {% for item in equipment %}
@@ -143,9 +166,57 @@ th,td{padding:5px;font-size:10px}
 <div class="page-break"></div>
 <div class="section">Комплектация и стоимость</div>
 <table>
-<thead><tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
-<tbody>{% for item in equipment %}<tr><td>{{ loop.index }}</td><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>{{ item.price_text }}</td><td>{{ item.sum_text }}</td></tr>{% endfor %}</tbody>
+<thead>
+{% if kp_type == "partner" %}
+<tr>
+  <th>№</th>
+  <th>Наименование</th>
+  <th>Кол-во</th>
+  <th>Цена розница</th>
+  <th>Цена партнер</th>
+  <th>Сумма партнер</th>
+</tr>
+{% else %}
+<tr>
+  <th>№</th>
+  <th>Наименование</th>
+  <th>Кол-во</th>
+  <th>Цена</th>
+  <th>Сумма</th>
+</tr>
+{% endif %}
+</thead>
+<tbody>
+{% for item in equipment %}
+{% if kp_type == "partner" %}
+<tr>
+  <td>{{ loop.index }}</td>
+  <td>{{ item.name }}</td>
+  <td>{{ item.qty }}</td>
+  <td>{{ item.retail_price_text }}</td>
+  <td>{{ item.price_text }}</td>
+  <td>{{ item.sum_text }}</td>
+</tr>
+{% else %}
+<tr>
+  <td>{{ loop.index }}</td>
+  <td>{{ item.name }}</td>
+  <td>{{ item.qty }}</td>
+  <td>{{ item.price_text }}</td>
+  <td>{{ item.sum_text }}</td>
+</tr>
+{% endif %}
+{% endfor %}
+</tbody>
 </table>
+
+{% if kp_type == "partner" %}
+<div class="partner-totals">
+  <div><span>Итого розница</span><b>{{ retail_total_text }}</b></div>
+  <div><span>Итого партнер</span><b>{{ partner_total_text }}</b></div>
+  <div><span>Ваша выгода</span><b>{{ benefit_total_text }}</b></div>
+</div>
+{% endif %}
 
 <div class="grid3">
   <div class="card"><h3>Анализ воды</h3><table>{% for row in water_rows %}<tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>{% endfor %}</table></div>

@@ -1688,11 +1688,14 @@ def render_public_kp_page(kp_id: str) -> None:
         else:
             price = float(row.get("retail_price") or row.get("price") or 0)
 
+        retail_price = float(row.get("retail_price") or row.get("price") or 0)
+
         equipment.append({
             "code": row.get("code") or "",
             "name": row.get("name") or "",
             "description": row.get("description") or "",
             "qty": int(qty),
+            "retail_price_text": money(retail_price),
             "price_text": money(price),
             "sum_text": money(price * qty),
         })
@@ -1735,6 +1738,7 @@ def render_public_kp_page(kp_id: str) -> None:
         "manager_phone": manager.get("phone") or "",
         "manager_email": manager.get("email") or "",
         "kp_number": build_public_kp_number(calc, kp_type),
+        "kp_type": kp_type,
         "object_type": val("object_type", "Частный дом"),
         "water_source": val("water_source", "Скважина"),
         "people": val("people", "—"),
@@ -1743,6 +1747,9 @@ def render_public_kp_page(kp_id: str) -> None:
         "equipment": equipment,
         "water_rows": water_rows,
         "total_text": money(total),
+        "retail_total_text": money(calc.get("retail_total") or 0),
+        "partner_total_text": money(calc.get("partner_total") or 0),
+        "benefit_total_text": money(calc.get("benefit_total") or 0),
     }
 
     template_path = BASE_DIR / "templates" / "public_kp.html"
