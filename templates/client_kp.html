@@ -448,6 +448,106 @@ th{background:#eef6ff;color:#003c7a}
   border:1px solid #fdba74;
 }
 
+
+.page-number-label{
+  font-size:10px;
+  color:#7a8ca3;
+  text-align:right;
+  margin-bottom:4px;
+}
+
+.equipment-description-page{
+  page-break-before:always;
+  break-before:page;
+}
+
+.equipment-cost-page{
+  page-break-before:always;
+  break-before:page;
+}
+
+.equipment-description-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-top:12px;
+}
+
+.equipment-description-card{
+  border:1px solid #d7e8fa;
+  border-radius:18px;
+  background:linear-gradient(180deg,#ffffff,#f5fbff);
+  padding:14px;
+  min-height:85px;
+  box-shadow:0 6px 18px rgba(0,60,122,.06);
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+
+.equipment-description-top{
+  display:grid;
+  grid-template-columns:72px 1fr;
+  gap:12px;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.equipment-description-top img{
+  max-width:72px;
+  max-height:62px;
+  object-fit:contain;
+}
+
+.equipment-description-num{
+  display:inline-block;
+  background:#005bbb;
+  color:white;
+  border-radius:999px;
+  padding:3px 9px;
+  font-size:10px;
+  font-weight:900;
+  margin-bottom:5px;
+}
+
+.equipment-description-card h3{
+  margin:0;
+  color:#003c7a;
+  font-size:16px;
+  line-height:1.1;
+}
+
+.equipment-description-card span{
+  display:block;
+  color:#0078d4;
+  font-size:11px;
+  font-weight:800;
+  margin-top:3px;
+}
+
+.equipment-description-card p{
+  margin:0;
+  color:#344054;
+  font-size:11.5px;
+  line-height:1.35;
+}
+
+@media print{
+  .equipment-description-page{
+    page-break-before:always;
+    break-before:page;
+  }
+
+  .equipment-cost-page{
+    page-break-before:always;
+    break-before:page;
+  }
+
+  .equipment-description-card{
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+}
+
 </style>
 
 </head>
@@ -501,6 +601,7 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 
 <div class="page equipment-description-page">
+<div class="page-number-label">Страница 3</div>
 <div class="section">Описание оборудования и его назначение</div>
 
 <div class="equipment-description-grid">
@@ -528,7 +629,7 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 </div>
 
-<div class="page">
+<div class="equipment-cost-page page">
 <div class="section">Для кого</div>
 <div class="benefits">
   <div class="benefit"><b>{{ object_type }}</b><br>Тип объекта</div>
