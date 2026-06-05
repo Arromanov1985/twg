@@ -395,6 +395,59 @@ th{background:#eef6ff;color:#003c7a}
   }
 }
 
+
+.sanpin-kp-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:10.5px;
+  background:white;
+  border:1px solid #d7e8fa;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.sanpin-kp-table th{
+  background:#eef6ff;
+  color:#003c7a;
+  text-align:left;
+  padding:7px 8px;
+  border:1px solid #d7e8fa;
+  font-weight:900;
+}
+
+.sanpin-kp-table td{
+  padding:6px 8px;
+  border:1px solid #e5eef8;
+  vertical-align:middle;
+}
+
+.sanpin-badge{
+  display:inline-block;
+  border-radius:999px;
+  padding:4px 8px;
+  font-weight:900;
+  font-size:9.5px;
+  white-space:nowrap;
+}
+
+.sanpin-badge.ok{
+  background:#e8f7ee;
+  color:#15803d;
+  border:1px solid #86efac;
+}
+
+.sanpin-badge.bad{
+  background:#feecec;
+  color:#b91c1c;
+  border:1px solid #fca5a5;
+}
+
+.sanpin-badge.warn{
+  background:#fff7ed;
+  color:#c2410c;
+  border:1px solid #fdba74;
+}
+
 </style>
 
 </head>
@@ -483,44 +536,31 @@ th{background:#eef6ff;color:#003c7a}
   Схема сформирована по фактически подобранному оборудованию. Конкретные модели и стоимость указаны в разделе «Комплектация и стоимость».
 </div>
 
-<div class="section">Анализ воды</div>
-<table>
-{% for row in water_rows %}
-<tr><td>{{ row.label }}</td><td><b>{{ row.value }}</b></td></tr>
-{% endfor %}
+<div class="section">Оценка анализа воды по СанПиН</div>
+
+<table class="sanpin-kp-table">
+  <thead>
+    <tr>
+      <th>Показатель</th>
+      <th>Значение</th>
+      <th>Норматив СанПиН</th>
+      <th>Оценка</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in sanpin_rows %}
+    <tr>
+      <td>{{ row.label }}</td>
+      <td><b>{{ row.value }}</b></td>
+      <td>{{ row.norm }}</td>
+      <td>
+        <span class="sanpin-badge {{ row.status_class }}">{{ row.status }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
-</div>
 
-<div class="page">
-<div class="section">Описание оборудования и его назначение</div>
-
-<div class="equipment-description-grid">
-{% for step in scheme_steps %}
-  {% if not step.is_service %}
-  <div class="equipment-description-card">
-    <div class="equipment-description-top">
-      {% if step.image_uri %}
-      <img src="{{ step.image_uri }}">
-      {% endif %}
-      <div>
-        <div class="equipment-description-num">Этап {{ step.num }}</div>
-        <h3>{{ step.title }}</h3>
-        <span>{{ step.note }}</span>
-      </div>
-    </div>
-    <p>{{ step.description }}</p>
-  </div>
-  {% endif %}
-{% endfor %}
-</div>
-
-<div class="scheme-info">
-  Описание сформировано автоматически по фактически подобранной комплектации. Если состав оборудования меняется, этот лист обновляется вместе с принципиальной схемой.
-</div>
-</div>
-
-
-<div class="page">
 <div class="section">Комплектация и стоимость</div>
 <table>
 <thead><tr><th>№</th><th>Наименование</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>

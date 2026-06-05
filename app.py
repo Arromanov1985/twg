@@ -1932,6 +1932,61 @@ def build_system_scheme(water_data: dict, equipment_data: list[dict]) -> list[di
     return scheme
 
 
+
+def build_sanpin_rows_for_kp(water_data: dict) -> list[dict]:
+    rows = []
+
+    items = [
+        ("ph", "pH"),
+        ("iron", "Железо"),
+        ("manganese", "Марганец"),
+        ("hardness", "Жесткость"),
+        ("tds", "Минерализация / TDS"),
+        ("permanganate", "Перманганатная окисляемость"),
+        ("odor_h2s", "Запах"),
+        ("bacteria", "Бактериология"),
+    ]
+
+    for key, label in items:
+        if key not in water_data:
+            continue
+
+        value = water_data.get(key)
+        norm, status = sanpin_norm_status(key, value)
+
+        if not norm:
+            continue
+
+        status_text = str(status or "")
+        is_ok = status_text == "В норме"
+
+        if is_ok:
+            status_label = "✅ В норме"
+            status_class = "ok"
+        elif status_text == "Обнаружено":
+            status_label = "❌ Обнаружено"
+            status_class = "bad"
+        elif status_text == "Отклонение":
+            status_label = "❌ Отклонение"
+            status_class = "bad"
+        elif status_text == "Превышение":
+            status_label = "❌ Превышение"
+            status_class = "bad"
+        else:
+            status_label = "⚠️ " + status_text
+            status_class = "warn"
+
+        rows.append({
+            "label": label,
+            "value": value,
+            "norm": norm,
+            "status": status_label,
+            "status_class": status_class,
+        })
+
+    return rows
+
+
 def render_public_kp_page(kp_id: str) -> None:
     sb = get_supabase_client()
 
@@ -2063,6 +2118,7 @@ def render_public_kp_page(kp_id: str) -> None:
         "equipment": equipment,
         "scheme_steps": build_system_scheme(water_data, equipment_data),
         "water_rows": water_rows,
+        "sanpin_rows": build_sanpin_rows_for_kp(water_data),
         "total_text": money(total),
         "logo_uri": _asset_to_base64(BASE_DIR / "assets" / "twg_logo.png"),
         "house_uri": _asset_to_base64(BASE_DIR / "assets" / "house.png"),
