@@ -1505,6 +1505,81 @@ def expand_equipment_codes(codes: list[str]) -> list[str]:
     return result
 
 
+
+def apply_housing_logic_by_people_and_water(selected_codes: list[str], values: dict[str, Any]) -> list[str]:
+    """
+    Корректирует корпуса FRP по логике TWG:
+    - AERO всегда FRP1054
+    - сорбенты / обезжелезивание в приоритете FRP1354
+    - умягчение: до 4 человек FRP1054, более 4 человек FRP1354
+    """
+    try:
+        people = int(float(values.get("people") or 0))
+    except Exception:
+        people = 0
+
+    try:
+        iron = float(values.get("iron") or 0)
+    except Exception:
+        iron = 0.0
+
+    try:
+        manganese = float(values.get("manganese") or 0)
+    except Exception:
+        manganese = 0.0
+
+    result: list[str] = []
+    seen = set()
+
+    text = " ".join(str(c) for c in selected_codes).upper()
+
+    has_aero = any("AERO" in str(c).upper() for c in selected_codes)
+
+    has_softener = any(
+        key in str(c).upper()
+        for c in selected_codes
+        for key in ["VR5D", "VRSD", "SOFT", "УМЯГ", "SALT"]
+    )
+
+    has_sorbent = any(
+        key in str(c).upper()
+        for c in selected_codes
+        for key in ["VR3F", "SOR", "СОРБ", "FM ", "MFU", "AC", "MC"]
+    ) or iron > 0.3 or manganese > 0.1
+
+    def add(code: str) -> None:
+        code = str(code).strip()
+        if code and code not in seen:
+            seen.add(code)
+            result.append(code)
+
+    for code in selected_codes:
+        code_u = str(code).upper().strip()
+
+        # Убираем старые универсальные корпуса, потом добавим нужные по логике.
+        if code_u in {"FRP0844", "FRP1054", "FRP1252", "FRP1354", "FRP1465", "FRP1665"}:
+            continue
+
+        add(code)
+
+    # AERO всегда FRP1054
+    if has_aero:
+        add("FRP1054")
+
+    # Сорбент / обезжелезивание — приоритет FRP1354
+    if has_sorbent:
+        add("FRP1354")
+
+    # Умягчение зависит от количества проживающих
+    if has_softener:
+        if people > 4:
+            add("FRP1354")
+        else:
+            add("FRP1054")
+
+    return result
+
+
 def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.DataFrame) -> tuple[list[str], list[str]]:
     # Базовые позиции из Excel сохраняются, но итоговая очередность задается инженерной схемой TWG.
     selected: list[str] = catalog.loc[catalog["base"], "code"].astype(str).tolist()
@@ -2313,6 +2388,7 @@ def main() -> None:
 
     if selection_mode == "Автоматический подбор по анализу воды":
         selected_codes, reasons = select_equipment(values, catalog, rules)
+        selected_codes = apply_housing_logic_by_people_and_water(selected_codes, values)
 
         order_map = {code: i for i, code in enumerate(selected_codes)}
         selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
