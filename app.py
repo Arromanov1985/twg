@@ -1019,9 +1019,53 @@ def add_extra_products(catalog: pd.DataFrame) -> pd.DataFrame:
         catalog = pd.concat([catalog, pd.DataFrame(rows)], ignore_index=True)
     return catalog
 
+
+def read_equipment_catalogs() -> pd.DataFrame:
+    """Читает все прайсы оборудования data/equipment_catalog*.xlsx и объединяет в один каталог."""
+    files = sorted(DATA_DIR.glob("equipment_catalog*.xlsx"))
+
+    if not files:
+        return pd.DataFrame(columns=list(REQUIRED_CATALOG_COLUMNS))
+
+    frames = []
+
+    for file in files:
+        try:
+            df = normalize_columns(read_excel(file))
+            df["source_file"] = file.name
+            frames.append(df)
+        except Exception as exc:
+            st.warning(f"Не удалось прочитать прайс {file.name}: {exc}")
+
+    if not frames:
+        return pd.DataFrame(columns=list(REQUIRED_CATALOG_COLUMNS))
+
+    catalog = pd.concat(frames, ignore_index=True)
+
+    # Не удаляем строки прайса на этапе загрузки.
+    # Только нормализуем код, чтобы можно было искать оборудование.
+    if "code" not in catalog.columns:
+        catalog["code"] = ""
+
+    catalog["code"] = catalog["code"].astype(str).str.strip()
+
+    # Убираем полностью пустые строки
+    catalog = catalog.dropna(how="all")
+
+    # Если один и тот же code есть в нескольких прайсах — оставляем последнюю версию
+    # после сортировки файлов. Это удобно для обновленного прайса.
+    not_empty_code = catalog["code"].astype(str).str.strip() != ""
+    with_code = catalog[not_empty_code].drop_duplicates(subset=["code"], keep="last")
+    without_code = catalog[~not_empty_code]
+
+    catalog = pd.concat([with_code, without_code], ignore_index=True)
+
+    return catalog
+
+
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     analysis = normalize_columns(read_excel(ANALYSIS_FILE))
-    catalog = normalize_columns(read_excel(CATALOG_FILE))
+    catalog = read_equipment_catalogs()
     rules = normalize_columns(read_excel(RULES_FILE))
     validate(analysis, REQUIRED_ANALYSIS_COLUMNS, ANALYSIS_FILE.name)
     validate(catalog, REQUIRED_CATALOG_COLUMNS, CATALOG_FILE.name)
@@ -1622,6 +1666,10 @@ def save_uploaded_image(uploaded_file, code: str) -> str | None:
 
 def admin_panel(catalog: pd.DataFrame, rules: pd.DataFrame) -> None:
     with st.expander("Администрирование: прайс, оборудование, правила и картинки"):
+        catalog_files_loaded = sorted(DATA_DIR.glob("equipment_catalog*.xlsx"))
+        st.caption("Прайсы оборудования загружаются автоматически: " + ", ".join([f.name for f in catalog_files_loaded]))
+        st.caption(f"Всего строк в объединенном каталоге: {len(catalog)}")
+
         st.write("Здесь можно быстро проверить базу. Для постоянных изменений редактируйте Excel-файлы в папке `data`.")
         st.dataframe(catalog, width="stretch", hide_index=True)
         st.dataframe(rules, width="stretch", hide_index=True)
