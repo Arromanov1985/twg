@@ -1111,6 +1111,100 @@ def safe_float(value: Any, default: float = 0.0) -> float:
         return default
 
 
+def sanpin_norm_status(parameter: str, value: Any) -> tuple[str, str]:
+    key = str(parameter or "").strip().lower()
+
+    try:
+        num = float(value)
+    except Exception:
+        num = None
+
+    if key in {"ph"}:
+        norm = f'{SANPIN_LIMITS["ph_min"]}–{SANPIN_LIMITS["ph_max"]}'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if SANPIN_LIMITS["ph_min"] <= num <= SANPIN_LIMITS["ph_max"] else "Превышение / отклонение"
+
+    if key in {"iron", "fe", "железо"}:
+        norm = f'≤ {SANPIN_LIMITS["iron"]} мг/л'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["iron"] else "Превышение"
+
+    if key in {"manganese", "mn", "марганец"}:
+        norm = f'≤ {SANPIN_LIMITS["manganese"]} мг/л'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["manganese"] else "Превышение"
+
+    if key in {"hardness", "жесткость", "hard"}:
+        norm = f'≤ {SANPIN_LIMITS["hardness"]} мг-экв/л'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["hardness"] else "Превышение"
+
+    if key in {"tds", "mineralization", "salt", "солесодержание", "минерализация"}:
+        norm = f'≤ {SANPIN_LIMITS["tds"]} мг/л'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["tds"] else "Превышение"
+
+    if key in {"permanganate", "oxidizability", "permanganate_oxidizability", "окисляемость"}:
+        norm = f'≤ {SANPIN_LIMITS["permanganate"]} мгО₂/л'
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["permanganate"] else "Превышение"
+
+    if key in {"odor_h2s", "odor_score", "запах", "сероводород"}:
+        norm = "≤ 2 балла"
+        if num is None:
+            return norm, "—"
+        return norm, "В норме" if num <= SANPIN_LIMITS["odor_h2s_max"] else "Превышение"
+
+    if key in {"bacteria", "bacteriology", "бактериология"}:
+        text = str(value or "").strip().lower()
+        norm = "не допускается"
+        if text in {"нет", "no", "false", "0", "отсутствует", ""}:
+            return norm, "В норме"
+        return norm, "Обнаружено"
+
+    return "", ""
+
+
+def render_sanpin_analysis_table(values: dict[str, Any]) -> None:
+    rows = []
+
+    for key, label in [
+        ("ph", "pH"),
+        ("iron", "Железо"),
+        ("manganese", "Марганец"),
+        ("hardness", "Жесткость"),
+        ("tds", "Минерализация / TDS"),
+        ("permanganate", "Перманганатная окисляемость"),
+        ("odor_h2s", "Запах"),
+        ("bacteria", "Бактериология"),
+    ]:
+        if key not in values:
+            continue
+
+        value = values.get(key)
+        norm, status = sanpin_norm_status(key, value)
+
+        if not norm and not status:
+            continue
+
+        rows.append({
+            "Показатель": label,
+            "Значение": value,
+            "Норматив СанПиН": norm,
+            "Оценка": status,
+        })
+
+    if rows:
+        st.subheader("Оценка анализа воды по СанПиН")
+        st.dataframe(rows, width="stretch", hide_index=True)
+
+
 
 def get_value(values: dict[str, Any], aliases: list[str], default: float = 0.0) -> float:
     for key in aliases:
@@ -2044,6 +2138,9 @@ def main() -> None:
         format_func=lambda x: f"{x} — {ODOR_H2S_LABELS[x]}",
     )
     values = build_odor_form(values)
+
+    render_sanpin_analysis_table(values)
+
     uploaded_analysis_files = build_analysis_files_uploader()
     st.subheader("Подбор оборудования")
 
