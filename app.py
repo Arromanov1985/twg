@@ -1961,7 +1961,15 @@ def main() -> None:
         return
 
     st.sidebar.image(str(BASE_DIR / "assets" / "twg_logo.png"), width="stretch")
-    st.sidebar.title("TerraWater Robot")
+    st.sidebar.markdown(
+    """
+    <div style="font-size:26px; line-height:1.15; font-weight:700; margin:16px 0 18px 0;">
+        TerraWater<br>
+        Robot <span style="color:#e31e24; font-weight:900;">AUTO</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
     st.sidebar.write("Подбор оборудования по анализу воды и формирование КП в HTML/PDF.")
 
     current_user = require_login()
