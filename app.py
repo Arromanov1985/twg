@@ -1691,89 +1691,85 @@ def build_public_kp_number(calc: dict, kp_type: str) -> str:
 
 
 
+
+SYSTEM_SCHEME_RULES = [
+    {
+        "title": "Дисковый фильтр",
+        "note": "предварительная механическая защита",
+        "image": "sdf100.png",
+        "keywords": ["sdf", "fd-100", "df-100", "дисков"],
+    },
+    {
+        "title": "Аэрация",
+        "note": "окисление железа, марганца и запаха",
+        "image": "aero.png",
+        "keywords": ["aero", "аэра", "компрессор", "1054-aero"],
+    },
+    {
+        "title": "Колонна очистки",
+        "note": "удаление железа, марганца и примесей",
+        "image": "column_filter.png",
+        "keywords": ["vr3f", "vr3", "сорбент", "сорбционная", "обезжел", "колонна очистки"],
+    },
+    {
+        "title": "Умягчение",
+        "note": "снижение жесткости и защита от накипи",
+        "image": "softener.png",
+        "keywords": ["vr5d", "умяг", "soft", "солевой", "солевым баком", "ионообмен", "катионит"],
+    },
+    {
+        "title": "BB20",
+        "note": "финишная картриджная очистка",
+        "image": "bb20.png",
+        "keywords": ["bb20", "бб20", "big blue", "биг блю", "абф-про-20", "картридж 20"],
+    },
+    {
+        "title": "OSMOS",
+        "note": "питьевая вода на кухню",
+        "image": "osmos.png",
+        "keywords": ["osmos", "osmo", "осмос", "омсо", "обратный осмос"],
+    },
+]
+
+
 def build_system_scheme(water_data: dict, equipment_data: list[dict]) -> list[dict]:
     """
     Принципиальная схема для КП клиента.
-    ВАЖНО: схема строится по фактически подобранному оборудованию,
-    чтобы она соответствовала комплектации в КП.
+    Строится по фактически подобранному оборудованию.
+    Картинки берутся из папки assets.
     """
 
     scheme = []
 
-    def add(title, note):
+    equipment_text = " ".join(
+        [
+            str(row.get("code") or "") + " " +
+            str(row.get("name") or "") + " " +
+            str(row.get("description") or "") + " " +
+            str(row.get("stage") or "")
+            for row in equipment_data
+        ]
+    ).lower()
+
+    def asset_uri(file_name: str) -> str:
+        return _asset_to_base64(BASE_DIR / "assets" / file_name)
+
+    def add(title: str, note: str, image: str = ""):
         if not any(x["title"] == title for x in scheme):
             scheme.append({
                 "num": len(scheme) + 1,
                 "title": title,
                 "note": note,
+                "image_uri": asset_uri(image) if image else "",
             })
 
-    def has_any(*needles):
-        text = " ".join(
-            [
-                str(row.get("code") or "") + " " +
-                str(row.get("name") or "") + " " +
-                str(row.get("description") or "") + " " +
-                str(row.get("stage") or "")
-                for row in equipment_data
-            ]
-        ).lower()
+    add("Скважина / ввод воды", "источник воды", "")
 
-        return any(n.lower() in text for n in needles)
+    for rule in SYSTEM_SCHEME_RULES:
+        if any(keyword.lower() in equipment_text for keyword in rule["keywords"]):
+            add(rule["title"], rule["note"], rule["image"])
 
-    add("Скважина / ввод воды", "источник воды")
-
-    # 1. Дисковый / предварительный фильтр
-    if has_any(
-        "sdf", "fd-100", "df-100", "дисков",
-        "сетчат", "предфильтр", "механический фильтр"
-    ):
-        add("Дисковый фильтр", "предварительная механическая защита")
-
-    # 2. Аэрация с компрессором
-    if has_any(
-        "aero", "аэра", "компрессор",
-        "1054-aero", "aero-100"
-    ):
-        add("Аэрация", "окисление железа, марганца и запаха")
-
-    # 3. Колонна без солевого бака: обезжелезивание / сорбция / фильтрация
-    if has_any(
-        "vr3", "vr3f", "обезжел", "сорбент",
-        "сорбционная", "угольная колонна",
-        "фильтрующая колонна", "birm", "pyrolox",
-        "mgs", "greensand"
-    ):
-        add("Колонна очистки", "удаление железа, марганца и примесей")
-
-    # 4. Колонна с солевым баком / умягчение
-    if has_any(
-        "vr5d", "soft", "умяг", "солевой",
-        "солевым баком", "ионообмен", "катионит"
-    ):
-        add("Умягчение", "снижение жесткости и защита от накипи")
-
-    # 5. BB20 / Big Blue
-    if has_any(
-        "bb20", "бб20", "big blue", "биг блю",
-        "абф-про-20", "картридж 20"
-    ):
-        add("BB20", "финишная картриджная очистка")
-
-    # 6. УФ-обеззараживание
-    if has_any(
-        "uv", "уф", "ультрафиолет", "обеззараж"
-    ):
-        add("УФ-обеззараживание", "бактериологическая безопасность")
-
-    # 7. OSMOS / ОМСО
-    if has_any(
-        "osmos", "осмос", "омсо", "osmo", "ro-",
-        "обратный осмос"
-    ):
-        add("OSMOS", "питьевая вода на кухню")
-
-    add("Дом", "чистая вода для потребителей")
+    add("Дом", "чистая вода для потребителей", "")
 
     for i, item in enumerate(scheme, start=1):
         item["num"] = i
