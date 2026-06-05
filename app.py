@@ -70,6 +70,18 @@ OPS = {
     "=": operator.eq,
 }
 
+# Нормативы СанПиН для питьевой воды.
+# Используются как базовые пороги автоматического подбора.
+SANPIN_LIMITS = {
+    "ph_min": 6.0,
+    "ph_max": 9.0,
+    "iron": 0.3,
+    "manganese": 0.1,
+    "hardness": 7.0,
+    "tds": 1000.0,
+    "permanganate": 5.0,
+}
+
 # Жесткая технологическая очередность TWG для схемы и КП.
 TECH_ORDER = [
     "DF100",
@@ -1207,18 +1219,33 @@ def apply_engineering_rules(
     add_code(selected, catalog, "DF100")
 
     has_h2s_problem = h2s >= 3 or odor_score >= 2
+
+    iron_over = iron > SANPIN_LIMITS["iron"]
+    manganese_over = manganese > SANPIN_LIMITS["manganese"]
+    hardness_over = hardness > SANPIN_LIMITS["hardness"]
+    tds_over = tds > SANPIN_LIMITS["tds"]
+    oxid_over = oxid > SANPIN_LIMITS["permanganate"]
+
+    # Аэрация нужна при заметной сумме Fe+Mn или сероводороде/запахе.
     needs_aeration = fe_mn >= 1.0 or has_h2s_problem
-    hard_water = hardness >= 3.0
-    very_hard_water = hardness >= 5.0
-    has_iron_mn = iron > 0.3 or manganese > 0.05
+
+    # Умягчение по СанПиН включаем при превышении 7 мг-экв/л.
+    # При 3-7 мг-экв/л ниже добавляем только рекомендацию.
+    hard_water = hardness_over
+    very_hard_water = hardness > 10.0
+
+    has_iron_mn = iron_over or manganese_over
     high_iron_mn = fe_mn >= 5.0
-    organic = oxid >= 5.0
+    organic = oxid_over
     high_organic = oxid >= 9.0
     complex_water = high_iron_mn or high_organic or (organic and has_iron_mn) or has_h2s_problem
 
     if needs_aeration:
         add_code(selected, catalog, "AERO")
         reasons.append("Требуется предварительная аэрация: есть железо/марганец, сероводород или выраженный запах.")
+
+    if 3.0 <= hardness <= SANPIN_LIMITS["hardness"]:
+        reasons.append("Жесткость не превышает норматив СанПиН, но может образовывать накипь. Умягчение можно предложить как опцию для защиты техники.")
 
     if line == "TWG":
         if complex_water and high_organic:
@@ -1262,8 +1289,8 @@ def apply_engineering_rules(
                 reasons.append("Для умягчения выбран ЭКОБРАЙТ Стандарт.")
             add_code(selected, catalog, "SALT70")
 
-    if ph < 6.5 or ph > 8.5:
-        reasons.append("pH вне комфортного диапазона 6.5–8.5: нужна инженерная проверка перед финальным КП.")
+    if ph < SANPIN_LIMITS["ph_min"] or ph > SANPIN_LIMITS["ph_max"]:
+        reasons.append("pH вне диапазона СанПиН 6.0–9.0: нужна инженерная проверка перед финальным КП.")
 
     if tds >= 800:
         add_code(selected, catalog, "OSMOS")
