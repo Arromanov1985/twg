@@ -91,6 +91,75 @@ th{background:#eef6ff;color:#003c7a}
   color:#6b7280;
 }
 
+
+.scheme-flow{
+  display:flex;
+  align-items:stretch;
+  gap:8px;
+  margin-top:10px;
+  overflow:hidden;
+}
+
+.scheme-item{
+  flex:1;
+  min-width:0;
+  border:1px solid #d7e8fa;
+  border-radius:16px;
+  background:linear-gradient(180deg,#ffffff,#f3faff);
+  padding:10px 8px;
+  text-align:center;
+  box-shadow:0 6px 18px rgba(0,60,122,.07);
+}
+
+.scheme-num{
+  width:26px;
+  height:26px;
+  margin:0 auto 7px;
+  border-radius:50%;
+  background:#005bbb;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:13px;
+}
+
+.scheme-title{
+  color:#003c7a;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.15;
+  min-height:30px;
+}
+
+.scheme-note{
+  color:#4b5563;
+  font-size:9.5px;
+  line-height:1.15;
+  margin-top:5px;
+}
+
+.scheme-arrow{
+  width:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#0078d4;
+  font-size:22px;
+  font-weight:900;
+}
+
+.scheme-info{
+  margin-top:12px;
+  padding:10px 14px;
+  border-radius:14px;
+  background:#eef6ff;
+  border:1px solid #d7e8fa;
+  color:#003c7a;
+  font-size:12px;
+  line-height:1.35;
+}
 </style>
 
 </head>
@@ -152,15 +221,23 @@ th{background:#eef6ff;color:#003c7a}
   <div class="benefit"><b>{{ flow_peak }}</b><br>м³/ч расход</div>
 </div>
 
-<div class="section">Принципиальная схема монтажа</div>
-<div class="flow">
-  <div class="step"><b>Скважина</b></div>
-  {% for item in equipment %}
-  <div class="arrow">→</div>
-  <div class="step"><b>{{ loop.index }}</b><br><small>{{ item.code }}</small></div>
+<div class="section">Принципиальная схема подбора оборудования</div>
+
+<div class="scheme-flow">
+  {% for step in scheme_steps %}
+  <div class="scheme-item">
+    <div class="scheme-num">{{ step.num }}</div>
+    <div class="scheme-title">{{ step.title }}</div>
+    <div class="scheme-note">{{ step.note }}</div>
+  </div>
+  {% if not loop.last %}
+  <div class="scheme-arrow">→</div>
+  {% endif %}
   {% endfor %}
-  <div class="arrow">→</div>
-  <div class="step"><b>Дом</b></div>
+</div>
+
+<div class="scheme-info">
+  Схема сформирована автоматически на основании анализа воды, источника водоснабжения и параметров объекта. Конкретные модели оборудования указаны в разделе «Комплектация и стоимость».
 </div>
 
 <div class="section">Анализ воды</div>

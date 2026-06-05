@@ -1688,6 +1688,128 @@ def build_public_kp_number(calc: dict, kp_type: str) -> str:
     return f"TWG-{region}-{created}-{short_id}-{type_part}"
 
 
+
+
+def build_system_scheme(water_data: dict, equipment_data: list[dict]) -> list[dict]:
+    """
+    Клиентская принципиальная схема подбора оборудования.
+    Не показывает лишние артикулы, а собирает понятные технологические узлы.
+    """
+
+    def f(key, default=0):
+        try:
+            return float(water_data.get(key) or default)
+        except Exception:
+            return default
+
+    def txt(key):
+        return str(water_data.get(key) or "").strip().lower()
+
+    codes = " ".join(str(x.get("code") or "") for x in equipment_data).lower()
+    names = " ".join(str(x.get("name") or "") for x in equipment_data).lower()
+    all_text = codes + " " + names
+
+    scheme = []
+
+    def add(title, note):
+        if not any(x["title"] == title for x in scheme):
+            scheme.append({
+                "num": len(scheme) + 1,
+                "title": title,
+                "note": note,
+            })
+
+    add("Скважина / ввод воды", "источник воды")
+
+    # 1. Механическая защита на входе
+    if (
+        "sdf" in all_text
+        or "df" in all_text
+        or "дисков" in all_text
+        or "механ" in all_text
+        or f("turbidity") > 0
+    ):
+        add("Дисковый фильтр", "защита от песка и механических примесей")
+
+    # 2. Аэрация — железо, марганец, сероводород
+    iron = f("iron")
+    manganese = f("manganese")
+    odor_h2s = str(water_data.get("odor_h2s") or "").strip()
+
+    if (
+        "aero" in all_text
+        or "аэра" in all_text
+        or iron > 0.3
+        or manganese > 0.1
+        or odor_h2s not in {"", "0", "нет", "none"}
+    ):
+        add("Аэрация", "окисление железа, марганца и запаха")
+
+    # 3. Колонна обезжелезивания / сорбционная колонна
+    if (
+        "vr3" in all_text
+        or "vr5" in all_text
+        or "1054" in all_text
+        or "1354" in all_text
+        or "сорб" in all_text
+        or "обезжел" in all_text
+        or iron > 0.3
+        or manganese > 0.1
+    ):
+        add("Колонна очистки", "удаление железа, марганца и взвесей")
+
+    # 4. Умягчение
+    hardness = f("hardness")
+    if (
+        "soft" in all_text
+        or "умяг" in all_text
+        or "солев" in all_text
+        or "vr5d" in all_text
+        or hardness > 4
+    ):
+        add("Умягчение", "снижение жесткости и защита от накипи")
+
+    # 5. Финишная механическая очистка
+    if (
+        "bb20" in all_text
+        or "бб20" in all_text
+        or "big blue" in all_text
+        or "картридж" in all_text
+    ):
+        add("BB20", "финишная картриджная очистка")
+
+    # 6. УФ
+    bacteriology = txt("bacteriology")
+    if (
+        "uv" in all_text
+        or "уф" in all_text
+        or "ультраф" in all_text
+        or bacteriology in {"да", "есть", "обнаружено", "положительно"}
+    ):
+        add("УФ-обеззараживание", "бактериологическая безопасность")
+
+    # 7. Осмос
+    tds = f("tds")
+    mineralization = f("mineralization")
+    if (
+        "osmos" in all_text
+        or "осмос" in all_text
+        or "омсо" in all_text
+        or "osmo" in all_text
+        or tds > 500
+        or mineralization > 500
+    ):
+        add("OSMOS", "питьевая вода на кухню")
+
+    add("Дом", "чистая вода для потребителей")
+
+    # перенумеруем на всякий случай
+    for i, item in enumerate(scheme, start=1):
+        item["num"] = i
+
+    return scheme
+
+
 def render_public_kp_page(kp_id: str) -> None:
     sb = get_supabase_client()
 
@@ -1817,6 +1939,7 @@ def render_public_kp_page(kp_id: str) -> None:
         "flow_peak": val("flow_peak", "—"),
         "problems": problems,
         "equipment": equipment,
+        "scheme_steps": build_system_scheme(water_data, equipment_data),
         "water_rows": water_rows,
         "total_text": money(total),
         "logo_uri": _asset_to_base64(BASE_DIR / "assets" / "twg_logo.png"),
