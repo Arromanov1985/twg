@@ -51,6 +51,7 @@ ASSET_DIR = BASE_DIR / "assets" / "equipment"
 
 CATALOG_FILE = DATA_DIR / "equipment_catalog.xlsx"
 RULES_FILE = DATA_DIR / "selection_rules.xlsx"
+EQUIPMENT_ALIASES_FILE = DATA_DIR / "equipment_aliases.json"
 ANALYSIS_FILE = DATA_DIR / "water_analysis.xlsx"
 
 st.set_page_config(page_title="TerraWater | Робот подбора оборудования", layout="wide")
@@ -1450,6 +1451,60 @@ def normalize_selection_order(selected: list[str]) -> list[str]:
     return sorted(unique, key=lambda code: priority.get(code, 999 + unique.index(code)))
 
 
+
+def load_equipment_aliases() -> dict[str, list[str]]:
+    """Загружает соответствия коротких кодов правилам к реальным кодам прайса."""
+    if not EQUIPMENT_ALIASES_FILE.exists():
+        return {}
+
+    try:
+        data = json.loads(EQUIPMENT_ALIASES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    aliases = data.get("aliases", {})
+    result: dict[str, list[str]] = {}
+
+    for key, value in aliases.items():
+        key_norm = str(key).strip()
+        if not key_norm:
+            continue
+
+        if isinstance(value, list):
+            result[key_norm] = [str(v).strip() for v in value if str(v).strip()]
+        else:
+            result[key_norm] = [str(value).strip()]
+
+    return result
+
+
+def expand_equipment_codes(codes: list[str]) -> list[str]:
+    """Разворачивает короткие коды AERO/OSMOS/SALT70 в реальные позиции из прайса."""
+    aliases = load_equipment_aliases()
+    expanded: list[str] = []
+
+    for code in codes:
+        code = str(code).strip()
+        if not code:
+            continue
+
+        if code in aliases:
+            expanded.extend(aliases[code])
+        else:
+            expanded.append(code)
+
+    # сохраняем порядок и убираем дубли
+    result: list[str] = []
+    seen = set()
+
+    for code in expanded:
+        if code not in seen:
+            seen.add(code)
+            result.append(code)
+
+    return result
+
+
 def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.DataFrame) -> tuple[list[str], list[str]]:
     # Базовые позиции из Excel сохраняются, но итоговая очередность задается инженерной схемой TWG.
     selected: list[str] = catalog.loc[catalog["base"], "code"].astype(str).tolist()
@@ -1461,6 +1516,7 @@ def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.Da
             continue
         if rule_matches(values[parameter], rule["operator"], rule["threshold"]):
             codes = [c.strip() for c in str(rule["equipment_codes"]).replace(";", ",").split(",") if c.strip()]
+            codes = expand_equipment_codes(codes)
             for code in codes:
                 add_code(selected, catalog, code)
             reason = str(rule.get("reason", "")).strip()

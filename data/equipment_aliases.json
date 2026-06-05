@@ -1,0 +1,25 @@
+{
+  "version": "2026-06-05",
+  "description": "Соответствие коротких кодов правил подбора реальным кодам оборудования из прайса.",
+  "aliases": {
+    "AERO": [
+      "TWG AERO-4-6",
+      "TWG AERO-BR1054",
+      "TWG AERO-BR",
+      "TWG AERO-100",
+      "FRP1054"
+    ],
+    "VR3F100T": [
+      "TWG VR3F-100T"
+    ],
+    "VRSD100VB": [
+      "TWG VR5D-100V-05-06-07"
+    ],
+    "OSMOS": [
+      "OSMOS-5-P"
+    ],
+    "SALT70": [
+      "TWG SALT-70L PRO"
+    ]
+  }
+}
