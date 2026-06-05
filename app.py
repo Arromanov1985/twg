@@ -806,6 +806,30 @@ def calculations_history_panel(current_user: dict):
                 st.metric("Партнер", f"{float(opened.get('partner_total') or 0):,.0f} ₽".replace(",", " "))
                 st.metric("Выгода", f"{float(opened.get('benefit_total') or 0):,.0f} ₽".replace(",", " "))
 
+            if current_user.get("role") == "admin":
+                st.divider()
+                st.warning("Удаление расчёта необратимо.")
+
+                confirm_delete = st.checkbox(
+                    "Подтверждаю удаление выбранного расчёта",
+                    key=f"confirm_delete_calc_{opened['id']}",
+                )
+
+                if st.button(
+                    "Удалить выбранный расчёт",
+                    type="primary",
+                    disabled=not confirm_delete,
+                    key=f"delete_calc_{opened['id']}",
+                ):
+                    try:
+                        sb.table("analysis_files").delete().eq("calculation_id", opened["id"]).execute()
+                    except Exception:
+                        pass
+
+                    sb.table("calculations").delete().eq("id", opened["id"]).execute()
+                    st.success("Расчёт удалён.")
+                    st.rerun()
+
             st.subheader("Анализ воды")
             if water_data:
                 water_rows = []
