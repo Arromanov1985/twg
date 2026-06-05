@@ -1696,8 +1696,8 @@ SYSTEM_SCHEME_RULES = [
     {
         "title": "Дисковый фильтр",
         "note": "предварительная механическая защита",
-        "image": "sdf100.png",
-        "keywords": ["sdf", "fd-100", "df-100", "дисков"],
+        "image": "df100.png",
+        "keywords": ["twg df-034", "twg df-100", "df-034", "df-100", "дисков"],
     },
     {
         "title": "Аэрация",
