@@ -1079,7 +1079,12 @@ def build_input_form(analysis: pd.DataFrame) -> dict[str, Any]:
 
 
 def build_resin_line_form(values: dict[str, Any]) -> dict[str, Any]:
-    values["product_line"] = "ЭКОБРАЙТ"
+    values["product_line"] = st.selectbox(
+        "Линейка оборудования",
+        ["TWG", "ЭКОБРАЙТ"],
+        index=0,
+        help="Выберите линейку, по которой робот будет автоматически формировать комплект."
+    )
     return values
 
 
@@ -1201,14 +1206,15 @@ def apply_engineering_rules(
 
     add_code(selected, catalog, "DF100")
 
-    needs_aeration = fe_mn >= 1.0 or h2s > 0 or odor_score >= 2
+    has_h2s_problem = h2s >= 3 or odor_score >= 2
+    needs_aeration = fe_mn >= 1.0 or has_h2s_problem
     hard_water = hardness >= 3.0
     very_hard_water = hardness >= 5.0
     has_iron_mn = iron > 0.3 or manganese > 0.05
     high_iron_mn = fe_mn >= 5.0
     organic = oxid >= 5.0
     high_organic = oxid >= 9.0
-    complex_water = high_iron_mn or high_organic or (organic and has_iron_mn) or h2s > 0 or odor_score >= 2
+    complex_water = high_iron_mn or high_organic or (organic and has_iron_mn) or has_h2s_problem
 
     if needs_aeration:
         add_code(selected, catalog, "AERO")
@@ -2012,14 +2018,65 @@ def main() -> None:
     )
     values = build_odor_form(values)
     uploaded_analysis_files = build_analysis_files_uploader()
-    selected_df, reasons = build_stage_selection(catalog)
+    st.subheader("Подбор оборудования")
 
-    if selected_df.empty:
-        st.warning("Выберите оборудование хотя бы в одном Stage.")
-        selected_df = catalog.iloc[0:0].copy()
+    selection_mode = st.radio(
+        "Режим подбора",
+        ["Автоматический подбор по анализу воды", "Ручной подбор оборудования"],
+        index=0,
+        horizontal=True,
+    )
+
+    if selection_mode == "Автоматический подбор по анализу воды":
+        selected_codes, reasons = select_equipment(values, catalog, rules)
+
+        order_map = {code: i for i, code in enumerate(selected_codes)}
+        selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
+
+        if selected_df.empty:
+            st.warning("Робот не смог подобрать оборудование. Проверьте анализ воды или перейдите в ручной режим.")
+            selected_df = catalog.iloc[0:0].copy()
+        else:
+            selected_df["_order"] = selected_df["code"].map(order_map).fillna(9999)
+            selected_df = selected_df.sort_values(["_order", "sort_order"])
+
+            st.success("Оборудование подобрано автоматически по анализу воды.")
+
+            with st.expander("Показать причины автоматического подбора", expanded=False):
+                if reasons:
+                    for reason in reasons:
+                        st.write("✅ " + str(reason))
+                else:
+                    st.info("Причины подбора не сформированы.")
+
+            with st.expander("Ручная корректировка автоматического подбора", expanded=False):
+                selected_options = st.multiselect(
+                    "Состав комплекта",
+                    catalog["code"].astype(str).tolist(),
+                    default=selected_df["code"].astype(str).tolist(),
+                    format_func=lambda c: f"{c} — {catalog.loc[catalog['code'].astype(str)==str(c), 'name'].iloc[0] if not catalog.loc[catalog['code'].astype(str)==str(c)].empty else c}",
+                    key="auto_selected_equipment_codes",
+                )
+
+                if selected_options:
+                    corrected_order = {code: i for i, code in enumerate(selected_options)}
+                    selected_df = catalog[catalog["code"].astype(str).isin(selected_options)].copy()
+                    selected_df["_order"] = selected_df["code"].astype(str).map(corrected_order).fillna(9999)
+                    selected_df = selected_df.sort_values(["_order", "sort_order"])
+                    reasons = reasons + ["Состав комплекта был скорректирован менеджером вручную."]
+                else:
+                    selected_df = catalog.iloc[0:0].copy()
+                    st.warning("Комплект пустой. Добавьте оборудование или переключитесь в ручной режим.")
+
     else:
-        selected_df["_order"] = range(len(selected_df))
-        selected_df = selected_df.sort_values(["_order", "sort_order"])
+        selected_df, reasons = build_stage_selection(catalog)
+
+        if selected_df.empty:
+            st.warning("Выберите оборудование хотя бы в одном Stage.")
+            selected_df = catalog.iloc[0:0].copy()
+        else:
+            selected_df["_order"] = range(len(selected_df))
+            selected_df = selected_df.sort_values(["_order", "sort_order"])
 
     render_visual_kp(selected_df, reasons, values, client_data)
     export_kp_block(selected_df, reasons, values, client_data, analysis)
