@@ -500,6 +500,34 @@ th{background:#eef6ff;color:#003c7a}
 </div>
 </div>
 
+<div class="page equipment-description-page">
+<div class="section">Описание оборудования и его назначение</div>
+
+<div class="equipment-description-grid">
+{% for step in scheme_steps %}
+  {% if not step.is_service %}
+  <div class="equipment-description-card">
+    <div class="equipment-description-top">
+      {% if step.image_uri %}
+      <img src="{{ step.image_uri }}">
+      {% endif %}
+      <div>
+        <div class="equipment-description-num">Этап {{ step.num }}</div>
+        <h3>{{ step.title }}</h3>
+        <span>{{ step.note }}</span>
+      </div>
+    </div>
+    <p>{{ step.description }}</p>
+  </div>
+  {% endif %}
+{% endfor %}
+</div>
+
+<div class="scheme-info">
+  Описание сформировано автоматически по фактически подобранной комплектации.
+</div>
+</div>
+
 <div class="page">
 <div class="section">Для кого</div>
 <div class="benefits">
