@@ -244,6 +244,87 @@ th{background:#eef6ff;color:#003c7a}
   font-size:11px;
   line-height:1.3;
 }
+
+/* Автоподстройка принципиальной схемы по количеству узлов */
+.scheme-flow{
+  display:grid !important;
+  grid-template-columns:repeat(var(--scheme-cols), minmax(0, 1fr));
+  gap:6px !important;
+  align-items:stretch;
+  width:100%;
+  overflow:visible !important;
+}
+
+.scheme-flow .scheme-arrow{
+  display:none !important;
+}
+
+.scheme-count-2{--scheme-cols:2}
+.scheme-count-3{--scheme-cols:3}
+.scheme-count-4{--scheme-cols:4}
+.scheme-count-5{--scheme-cols:5}
+.scheme-count-6{--scheme-cols:6}
+.scheme-count-7{--scheme-cols:7}
+.scheme-count-8{--scheme-cols:8}
+.scheme-count-9{--scheme-cols:9}
+
+.scheme-item{
+  min-width:0 !important;
+  padding:6px 5px !important;
+}
+
+.scheme-img-wrap{
+  height:clamp(34px, 6vw, 62px) !important;
+}
+
+.scheme-img{
+  max-height:clamp(34px, 6vw, 62px) !important;
+  max-width:100% !important;
+}
+
+.scheme-title{
+  font-size:clamp(8px, .95vw, 11px) !important;
+  min-height:auto !important;
+}
+
+.scheme-note{
+  font-size:clamp(7px, .75vw, 8.5px) !important;
+}
+
+/* Если узлов много — еще компактнее */
+.scheme-count-7 .scheme-img-wrap,
+.scheme-count-8 .scheme-img-wrap,
+.scheme-count-9 .scheme-img-wrap{
+  height:42px !important;
+}
+
+.scheme-count-7 .scheme-img,
+.scheme-count-8 .scheme-img,
+.scheme-count-9 .scheme-img{
+  max-height:42px !important;
+}
+
+.scheme-count-7 .scheme-title,
+.scheme-count-8 .scheme-title,
+.scheme-count-9 .scheme-title{
+  font-size:8.5px !important;
+}
+
+.scheme-count-7 .scheme-note,
+.scheme-count-8 .scheme-note,
+.scheme-count-9 .scheme-note{
+  font-size:7px !important;
+}
+
+@media print{
+  .scheme-flow{
+    display:grid !important;
+    width:100% !important;
+    overflow:visible !important;
+    page-break-inside:avoid;
+  }
+}
+
 </style>
 
 </head>
@@ -307,7 +388,7 @@ th{background:#eef6ff;color:#003c7a}
 
 <div class="section">Принципиальная схема подбора оборудования</div>
 
-<div class="scheme-flow">
+<div class="scheme-flow scheme-count-{{ scheme_steps|length }}">
   {% for step in scheme_steps %}
   <div class="scheme-item">
     <div class="scheme-num">{{ step.num }}</div>
