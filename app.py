@@ -1690,24 +1690,13 @@ def build_public_kp_number(calc: dict, kp_type: str) -> str:
 
 
 
+
 def build_system_scheme(water_data: dict, equipment_data: list[dict]) -> list[dict]:
     """
-    Клиентская принципиальная схема подбора оборудования.
-    Не показывает лишние артикулы, а собирает понятные технологические узлы.
+    Принципиальная схема для КП клиента.
+    ВАЖНО: схема строится по фактически подобранному оборудованию,
+    чтобы она соответствовала комплектации в КП.
     """
-
-    def f(key, default=0):
-        try:
-            return float(water_data.get(key) or default)
-        except Exception:
-            return default
-
-    def txt(key):
-        return str(water_data.get(key) or "").strip().lower()
-
-    codes = " ".join(str(x.get("code") or "") for x in equipment_data).lower()
-    names = " ".join(str(x.get("name") or "") for x in equipment_data).lower()
-    all_text = codes + " " + names
 
     scheme = []
 
@@ -1719,91 +1708,73 @@ def build_system_scheme(water_data: dict, equipment_data: list[dict]) -> list[di
                 "note": note,
             })
 
+    def has_any(*needles):
+        text = " ".join(
+            [
+                str(row.get("code") or "") + " " +
+                str(row.get("name") or "") + " " +
+                str(row.get("description") or "") + " " +
+                str(row.get("stage") or "")
+                for row in equipment_data
+            ]
+        ).lower()
+
+        return any(n.lower() in text for n in needles)
+
     add("Скважина / ввод воды", "источник воды")
 
-    # 1. Механическая защита на входе
-    if (
-        "sdf" in all_text
-        or "df" in all_text
-        or "дисков" in all_text
-        or "механ" in all_text
-        or f("turbidity") > 0
+    # 1. Дисковый / предварительный фильтр
+    if has_any(
+        "sdf", "fd-100", "df-100", "дисков",
+        "сетчат", "предфильтр", "механический фильтр"
     ):
-        add("Дисковый фильтр", "защита от песка и механических примесей")
+        add("Дисковый фильтр", "предварительная механическая защита")
 
-    # 2. Аэрация — железо, марганец, сероводород
-    iron = f("iron")
-    manganese = f("manganese")
-    odor_h2s = str(water_data.get("odor_h2s") or "").strip()
-
-    if (
-        "aero" in all_text
-        or "аэра" in all_text
-        or iron > 0.3
-        or manganese > 0.1
-        or odor_h2s not in {"", "0", "нет", "none"}
+    # 2. Аэрация с компрессором
+    if has_any(
+        "aero", "аэра", "компрессор",
+        "1054-aero", "aero-100"
     ):
         add("Аэрация", "окисление железа, марганца и запаха")
 
-    # 3. Колонна обезжелезивания / сорбционная колонна
-    if (
-        "vr3" in all_text
-        or "vr5" in all_text
-        or "1054" in all_text
-        or "1354" in all_text
-        or "сорб" in all_text
-        or "обезжел" in all_text
-        or iron > 0.3
-        or manganese > 0.1
+    # 3. Колонна без солевого бака: обезжелезивание / сорбция / фильтрация
+    if has_any(
+        "vr3", "vr3f", "обезжел", "сорбент",
+        "сорбционная", "угольная колонна",
+        "фильтрующая колонна", "birm", "pyrolox",
+        "mgs", "greensand"
     ):
-        add("Колонна очистки", "удаление железа, марганца и взвесей")
+        add("Колонна очистки", "удаление железа, марганца и примесей")
 
-    # 4. Умягчение
-    hardness = f("hardness")
-    if (
-        "soft" in all_text
-        or "умяг" in all_text
-        or "солев" in all_text
-        or "vr5d" in all_text
-        or hardness > 4
+    # 4. Колонна с солевым баком / умягчение
+    if has_any(
+        "vr5d", "soft", "умяг", "солевой",
+        "солевым баком", "ионообмен", "катионит"
     ):
         add("Умягчение", "снижение жесткости и защита от накипи")
 
-    # 5. Финишная механическая очистка
-    if (
-        "bb20" in all_text
-        or "бб20" in all_text
-        or "big blue" in all_text
-        or "картридж" in all_text
+    # 5. BB20 / Big Blue
+    if has_any(
+        "bb20", "бб20", "big blue", "биг блю",
+        "абф-про-20", "картридж 20"
     ):
         add("BB20", "финишная картриджная очистка")
 
-    # 6. УФ
-    bacteriology = txt("bacteriology")
-    if (
-        "uv" in all_text
-        or "уф" in all_text
-        or "ультраф" in all_text
-        or bacteriology in {"да", "есть", "обнаружено", "положительно"}
+    # 6. УФ-обеззараживание
+    if has_any(
+        "uv", "уф", "ультрафиолет", "обеззараж"
     ):
         add("УФ-обеззараживание", "бактериологическая безопасность")
 
-    # 7. Осмос
-    tds = f("tds")
-    mineralization = f("mineralization")
-    if (
-        "osmos" in all_text
-        or "осмос" in all_text
-        or "омсо" in all_text
-        or "osmo" in all_text
-        or tds > 500
-        or mineralization > 500
+    # 7. OSMOS / ОМСО
+    if has_any(
+        "osmos", "осмос", "омсо", "osmo", "ro-",
+        "обратный осмос"
     ):
         add("OSMOS", "питьевая вода на кухню")
 
     add("Дом", "чистая вода для потребителей")
 
-    # перенумеруем на всякий случай
     for i, item in enumerate(scheme, start=1):
         item["num"] = i
 
