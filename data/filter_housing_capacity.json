@@ -1,0 +1,148 @@
+{
+  "version": "2026-06-05-corrected-by-twg-table",
+  "title": "Вместимость корпусов магистрального фильтра",
+  "note": "Объемы основной загрузки и подложек взяты из таблицы TWG. В комплектации основная загрузка округляется вверх до целого мешка или ведра.",
+  "housing_name_in_system": "Корпус магистрального фильтра",
+  "rounding_rule": "ceil_to_full_package",
+  "capacities_liters": {
+    "0844": {
+      "main_media_l": 18.75,
+      "complex_12_5l_buckets": 2,
+      "resin_25l_bags": 1,
+      "sorbent_25l_bags": 1,
+      "sorbent_18_5l_bags_purchase": 2,
+      "support_top_article": "Eco 1.20 LAY-top",
+      "support_top_qty": 1,
+      "support_top_l_total": 1.20,
+      "support_bottom_article": "Eco 1.20 LAY-btm",
+      "support_bottom_qty": 2,
+      "support_bottom_l_total": 2.40,
+      "catalyst_optional_l": 3.60,
+      "comment": "малая колонна",
+      "description": "Корпус магистрального фильтра 0844: основная загрузка 18,75 л, верхняя подложка 1,20 л, нижняя подложка 2,40 л."
+    },
+    "1054": {
+      "main_media_l": 37.50,
+      "complex_12_5l_buckets": 3,
+      "resin_25l_bags": 2,
+      "sorbent_25l_bags": 2,
+      "sorbent_18_5l_bags_purchase": 3,
+      "support_top_article": "Eco 2.75 LAY-top",
+      "support_top_qty": 1,
+      "support_top_l_total": 2.75,
+      "support_bottom_article": "Eco 2.75 LAY-btm",
+      "support_bottom_qty": 2,
+      "support_bottom_l_total": 5.50,
+      "catalyst_optional_l": 8.25,
+      "comment": "базовый частный дом",
+      "description": "Корпус магистрального фильтра 1054: основная загрузка 37,5 л, верхняя подложка 2,75 л, нижняя подложка 5,50 л."
+    },
+    "1252": {
+      "main_media_l": 50.00,
+      "complex_12_5l_buckets": 4,
+      "resin_25l_bags": 2,
+      "sorbent_25l_bags": 2,
+      "sorbent_18_5l_bags_purchase": 3,
+      "support_top_article": "Eco 2.75 LAY-top",
+      "support_top_qty": 1,
+      "support_top_l_total": 2.75,
+      "support_bottom_article": "Eco 2.75 LAY-btm",
+      "support_bottom_qty": 3,
+      "support_bottom_l_total": 8.25,
+      "catalyst_optional_l": 11.00,
+      "comment": "повышенный расход",
+      "description": "Корпус магистрального фильтра 1252: основная загрузка 50 л, верхняя подложка 2,75 л, нижняя подложка 8,25 л."
+    },
+    "1354": {
+      "main_media_l": 62.50,
+      "complex_12_5l_buckets": 5,
+      "resin_25l_bags": 3,
+      "sorbent_25l_bags": 3,
+      "sorbent_18_5l_bags_purchase": 4,
+      "support_top_article": "Eco 2.75 LAY-top",
+      "support_top_qty": 1,
+      "support_top_l_total": 2.75,
+      "support_bottom_article": "Eco 2.75 LAY-btm",
+      "support_bottom_qty": 3,
+      "support_bottom_l_total": 8.25,
+      "catalyst_optional_l": 11.00,
+      "comment": "большой расход",
+      "description": "Корпус магистрального фильтра 1354: основная загрузка 62,5 л, верхняя подложка 2,75 л, нижняя подложка 8,25 л."
+    },
+    "1465": {
+      "main_media_l": 75.00,
+      "complex_12_5l_buckets": 6,
+      "resin_25l_bags": 3,
+      "sorbent_25l_bags": 3,
+      "sorbent_18_5l_bags_purchase": 5,
+      "support_top_article": "Eco 2.75 LAY-top",
+      "support_top_qty": 2,
+      "support_top_l_total": 5.50,
+      "support_bottom_article": "Eco 2.75 LAY-btm",
+      "support_bottom_qty": 6,
+      "support_bottom_l_total": 16.50,
+      "catalyst_optional_l": 22.00,
+      "comment": "высокая производительность",
+      "description": "Корпус магистрального фильтра 1465: основная загрузка 75 л, верхняя подложка 5,50 л, нижняя подложка 16,50 л."
+    },
+    "1665": {
+      "main_media_l": 100.00,
+      "complex_12_5l_buckets": 8,
+      "resin_25l_bags": 4,
+      "sorbent_25l_bags": 4,
+      "sorbent_18_5l_bags_purchase": 6,
+      "support_top_article": "Eco 2.75 LAY-top",
+      "support_top_qty": 2,
+      "support_top_l_total": 5.50,
+      "support_bottom_article": "Eco 2.75 LAY-btm",
+      "support_bottom_qty": 7,
+      "support_bottom_l_total": 19.25,
+      "catalyst_optional_l": 24.75,
+      "comment": "максимальная бытовая/полупромышленная колонна",
+      "description": "Корпус магистрального фильтра 1665: основная загрузка 100 л, верхняя подложка 5,50 л, нижняя подложка 19,25 л."
+    }
+  },
+  "media_packaging": {
+    "complex_ekobright": {
+      "package_l": 12.5,
+      "rounding": "ceil",
+      "examples": [
+        "Eco 12.5 IER P",
+        "Eco 12.5 IER PB",
+        "Eco 12.5 IER PO",
+        "Eco 12.5 IER POB",
+        "Eco 12.5 IER POO",
+        "Eco 12.5 IER POOB"
+      ]
+    },
+    "resin_ekobright": {
+      "package_l": 25.0,
+      "rounding": "ceil",
+      "examples": [
+        "Экобрайт УМЯГЧЕНИЕ",
+        "Экобрайт ОРГАНИК"
+      ]
+    },
+    "sorbent_ac": {
+      "package_l": 25.0,
+      "rounding": "ceil",
+      "examples": [
+        "FM AC 25L",
+        "FM AC 25L 0,7-1,4"
+      ]
+    },
+    "sorbent_mc_mfu": {
+      "package_l": 18.5,
+      "rounding": "ceil",
+      "examples": [
+        "FM MFU 18.5L",
+        "FM MC 18.5L",
+        "FM MC 18.5L 0,7-1,4"
+      ]
+    },
+    "support_layers": {
+      "rounding": "fixed_by_table",
+      "note": "Подложки добавляются по количеству из таблицы TWG, не пересчитываются по основной загрузке."
+    }
+  }
+}
