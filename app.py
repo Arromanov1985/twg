@@ -1159,7 +1159,7 @@ def sanpin_norm_status(parameter: str, value: Any) -> tuple[str, str]:
         norm = "≤ 2 балла"
         if num is None:
             return norm, "—"
-        return norm, "В норме" if num <= SANPIN_LIMITS["odor_h2s_max"] else "Превышение"
+        return norm, "В норме" if num <= SANPIN_LIMITS.get("odor_h2s_max", 2.0) else "Превышение"
 
     if key in {"bacteria", "bacteriology", "бактериология"}:
         text = str(value or "").strip().lower()
