@@ -1021,6 +1021,34 @@ def add_extra_products(catalog: pd.DataFrame) -> pd.DataFrame:
     return catalog
 
 
+
+def clean_equipment_code(value: Any) -> str:
+    """Нормализует код оборудования и отсекает пустые/nan/none."""
+    text = str(value or "").strip()
+
+    if text.lower() in {"", "nan", "none", "null"}:
+        return ""
+
+    return text
+
+
+def clean_equipment_codes(codes: list[Any]) -> list[str]:
+    """Чистит список кодов, убирает пустые и дубли, сохраняет порядок."""
+    result: list[str] = []
+    seen = set()
+
+    for code in codes:
+        code_clean = clean_equipment_code(code)
+        if not code_clean:
+            continue
+
+        if code_clean not in seen:
+            seen.add(code_clean)
+            result.append(code_clean)
+
+    return result
+
+
 def read_equipment_catalogs() -> pd.DataFrame:
     """Читает все прайсы оборудования data/equipment_catalog*.xlsx и объединяет в один каталог."""
     files = sorted(DATA_DIR.glob("equipment_catalog*.xlsx"))
@@ -1048,14 +1076,14 @@ def read_equipment_catalogs() -> pd.DataFrame:
     if "code" not in catalog.columns:
         catalog["code"] = ""
 
-    catalog["code"] = catalog["code"].astype(str).str.strip()
+    catalog["code"] = catalog["code"].apply(clean_equipment_code)
 
     # Убираем полностью пустые строки
     catalog = catalog.dropna(how="all")
 
     # Если один и тот же code есть в нескольких прайсах — оставляем последнюю версию
     # после сортировки файлов. Это удобно для обновленного прайса.
-    not_empty_code = catalog["code"].astype(str).str.strip() != ""
+    not_empty_code = catalog["code"].apply(clean_equipment_code) != ""
     with_code = catalog[not_empty_code].drop_duplicates(subset=["code"], keep="last")
     without_code = catalog[~not_empty_code]
 
@@ -1502,7 +1530,7 @@ def expand_equipment_codes(codes: list[str]) -> list[str]:
             seen.add(code)
             result.append(code)
 
-    return result
+    return clean_equipment_codes(result)
 
 
 
@@ -1590,8 +1618,9 @@ def select_equipment(values: dict[str, Any], catalog: pd.DataFrame, rules: pd.Da
         if parameter not in values:
             continue
         if rule_matches(values[parameter], rule["operator"], rule["threshold"]):
-            codes = [c.strip() for c in str(rule["equipment_codes"]).replace(";", ",").split(",") if c.strip()]
+            codes = [c.strip() for c in str(rule["equipment_codes"]).replace(";", ",").split(",") if clean_equipment_code(c)]
             codes = expand_equipment_codes(codes)
+            codes = clean_equipment_codes(codes)
             for code in codes:
                 add_code(selected, catalog, code)
             reason = str(rule.get("reason", "")).strip()
@@ -2389,9 +2418,17 @@ def main() -> None:
     if selection_mode == "Автоматический подбор по анализу воды":
         selected_codes, reasons = select_equipment(values, catalog, rules)
         selected_codes = apply_housing_logic_by_people_and_water(selected_codes, values)
+        selected_codes = clean_equipment_codes(selected_codes)
 
         order_map = {code: i for i, code in enumerate(selected_codes)}
-        selected_df = catalog[catalog["code"].isin(selected_codes)].copy()
+        catalog_for_selection = catalog.copy()
+        catalog_for_selection["code"] = catalog_for_selection["code"].apply(clean_equipment_code)
+        selected_codes = clean_equipment_codes(selected_codes)
+
+        if selected_codes:
+            selected_df = catalog_for_selection[catalog_for_selection["code"].isin(selected_codes)].copy()
+        else:
+            selected_df = catalog_for_selection.iloc[0:0].copy()
 
         if selected_df.empty:
             st.warning("Робот не смог подобрать оборудование. Проверьте анализ воды или перейдите в ручной режим.")
