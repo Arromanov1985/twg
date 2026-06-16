@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import base64
 import streamlit as st
+import streamlit.components.v1 as components
 from ai_water_recognition import recognize_water_analysis_document
 
 
@@ -35,6 +37,134 @@ def _set_value(name, value):
         st.session_state[key] = value
 
 
+
+def render_mobile_camera_capture():
+    """
+    HTML/JS камера для телефона.
+    По умолчанию открывает заднюю камеру.
+    Возвращает data URL снимка или None.
+    """
+    html = """
+    <div style="border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#f8fafc;">
+      <div style="font-weight:700;margin-bottom:8px;">Камера телефона</div>
+
+      <label style="font-size:14px;">Выбор камеры:</label>
+      <select id="cameraFacing" style="padding:8px;border-radius:8px;border:1px solid #d1d5db;margin:6px 0 10px 0;">
+        <option value="environment" selected>Задняя камера</option>
+        <option value="user">Фронтальная камера</option>
+      </select>
+
+      <div>
+        <button id="startCamera" style="background:#0ea5e9;color:white;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;">
+          Включить камеру
+        </button>
+        <button id="takePhoto" style="background:#16a34a;color:white;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;margin-left:8px;">
+          Сделать фото
+        </button>
+        <button id="stopCamera" style="background:#64748b;color:white;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;margin-left:8px;">
+          Выключить
+        </button>
+      </div>
+
+      <video id="video" autoplay playsinline style="width:100%;max-height:420px;margin-top:12px;border-radius:14px;background:#111;"></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+
+      <div id="previewWrap" style="display:none;margin-top:12px;">
+        <div style="font-weight:700;margin-bottom:6px;">Снимок:</div>
+        <img id="preview" style="width:100%;border-radius:14px;border:1px solid #e5e7eb;" />
+      </div>
+
+      <input id="photoData" type="hidden" value="" />
+      <div id="status" style="font-size:13px;color:#475569;margin-top:8px;"></div>
+    </div>
+
+    <script>
+    let stream = null;
+
+    const statusEl = document.getElementById("status");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const preview = document.getElementById("preview");
+    const previewWrap = document.getElementById("previewWrap");
+    const photoData = document.getElementById("photoData");
+
+    async function startCamera() {
+      const facingMode = document.getElementById("cameraFacing").value;
+
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+
+        video.srcObject = stream;
+        statusEl.innerText = "Камера включена.";
+      } catch (err) {
+        statusEl.innerText = "Не удалось включить камеру: " + err.message;
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+      statusEl.innerText = "Камера выключена.";
+    }
+
+    function takePhoto() {
+      if (!video.videoWidth || !video.videoHeight) {
+        statusEl.innerText = "Камера еще не готова.";
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      preview.src = dataUrl;
+      previewWrap.style.display = "block";
+      photoData.value = dataUrl;
+
+      statusEl.innerText = "Фото сделано. Нажмите кнопку ниже для передачи снимка в приложение.";
+
+      // Отправляем значение в Streamlit component iframe через query string hack невозможно напрямую.
+      // Поэтому пользователь копирует data URL через hidden input не нужен;
+      // компонент ниже возвращает данные через Streamlit.setComponentValue, если доступно.
+      if (window.Streamlit) {
+        window.Streamlit.setComponentValue(dataUrl);
+      }
+    }
+
+    document.getElementById("startCamera").onclick = startCamera;
+    document.getElementById("takePhoto").onclick = takePhoto;
+    document.getElementById("stopCamera").onclick = stopCamera;
+
+    // Автостарт задней камеры
+    startCamera();
+
+    if (window.Streamlit) {
+      window.Streamlit.setFrameHeight(720);
+    }
+    </script>
+    """
+
+    return components.html(html, height=760)
+
+
 def apply_ai_water_values_to_session(values):
     for key, value in (values or {}).items():
         _set_value(key, value)
@@ -49,26 +179,13 @@ def render_ai_water_recognition_block():
     if not api_key:
         st.info("ИИ-распознавание появится после добавления OPENAI_API_KEY в Streamlit Secrets.")
 
-    tab_upload, tab_camera = st.tabs(["Загрузить фото", "Камера телефона"])
+    st.info("С телефона нажмите Upload / Обзор и выберите: Камера → задняя камера. Так снимок будет сделан основной камерой телефона.")
 
-    uploaded_file = None
-
-    with tab_upload:
-        f = st.file_uploader(
-            "Загрузите фото или PDF анализа воды для ИИ-распознавания",
-            type=["jpg", "jpeg", "png", "pdf"],
-            key="ai_water_photo_upload",
-        )
-        if f is not None:
-            uploaded_file = f
-
-    with tab_camera:
-        cam = st.camera_input(
-            "Сфотографируйте анализ воды",
-            key="ai_water_photo_camera",
-        )
-        if cam is not None:
-            uploaded_file = cam
+    uploaded_file = st.file_uploader(
+        "Загрузите фото или PDF анализа воды для ИИ-распознавания",
+        type=["jpg", "jpeg", "png", "pdf"],
+        key="ai_water_photo_upload",
+    )
 
     if uploaded_file is None:
         return
