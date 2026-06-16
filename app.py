@@ -2479,7 +2479,7 @@ def main() -> None:
             selected_df = selected_df.sort_values(["_order", "sort_order"])
 
     render_visual_kp(selected_df, reasons, values, client_data)
-    render_twg_ai_agent_block(selected_df, reasons, values, client_data)
+    # render_twg_ai_agent_block(selected_df, reasons, values, client_data)  # временно отключено: функция не определена
     export_kp_block(selected_df, reasons, values, client_data, analysis)
     save_calculation_block(current_user, client_data, values, selected_df, uploaded_analysis_files)
     # admin_panel(catalog, rules)  # отключено, чтобы не падало на пустых code в прайсе
