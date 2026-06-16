@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-from ai_water_recognition import recognize_water_analysis_image
+from ai_water_recognition import recognize_water_analysis_document
 
 
 def _set_value(name, value):
@@ -55,8 +55,8 @@ def render_ai_water_recognition_block():
 
     with tab_upload:
         f = st.file_uploader(
-            "Загрузите фото анализа воды для ИИ-распознавания",
-            type=["jpg", "jpeg", "png"],
+            "Загрузите фото или PDF анализа воды для ИИ-распознавания",
+            type=["jpg", "jpeg", "png", "pdf"],
             key="ai_water_photo_upload",
         )
         if f is not None:
@@ -73,7 +73,7 @@ def render_ai_water_recognition_block():
     if uploaded_file is None:
         return
 
-    st.image(uploaded_file, caption="Фото анализа воды", use_container_width=True)
+    st.image(uploaded_file, caption="Фото / PDF анализа воды", use_container_width=True)
 
     if st.button("Распознать анализ воды ИИ", use_container_width=True):
         if not api_key:
@@ -81,7 +81,7 @@ def render_ai_water_recognition_block():
             return
 
         with st.spinner("ИИ распознает показатели анализа воды..."):
-            result = recognize_water_analysis_image(
+            result = recognize_water_analysis_document(
                 api_key=api_key,
                 raw=uploaded_file.getvalue(),
                 filename=getattr(uploaded_file, "name", "analysis.jpg"),

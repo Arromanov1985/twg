@@ -207,3 +207,92 @@ def recognize_water_analysis_image(
         }
 
     return normalize_water_analysis_result(parsed)
+
+def recognize_water_analysis_pdf(
+    *,
+    api_key: str,
+    raw: bytes,
+    filename: str,
+    model: str = "gpt-4.1-mini",
+) -> dict[str, Any]:
+    """
+    Распознает анализ воды из PDF.
+    PDF отправляется в OpenAI как файл, модель извлекает текст/таблицы и возвращает JSON.
+    """
+    client = OpenAI(api_key=api_key)
+
+    uploaded = client.files.create(
+        file=(filename or "analysis.pdf", raw, "application/pdf"),
+        purpose="assistants"
+    )
+
+    response = client.responses.create(
+        model=model,
+        input=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": WATER_ANALYSIS_SYSTEM_PROMPT},
+                    {"type": "input_file", "file_id": uploaded.id}
+                ],
+            }
+        ],
+    )
+
+    parsed = extract_json_object(response.output_text)
+
+    if not parsed:
+        return {
+            "recognized": False,
+            "confidence": "low",
+            "source_quality": "Не удалось получить JSON от ИИ по PDF",
+            "values": {
+                "ph": None,
+                "iron": None,
+                "manganese": None,
+                "hardness": None,
+                "tds": None,
+                "permanganate": None,
+                "odor_h2s": None,
+                "bacteria": "не указано",
+                "turbidity": None,
+                "color": None,
+                "ammonium": None,
+            },
+            "warnings": [
+                "ИИ не вернул корректный JSON по PDF. Загрузите фото первой страницы анализа или введите данные вручную."
+            ],
+            "raw_detected_text": response.output_text or "",
+        }
+
+    return normalize_water_analysis_result(parsed)
+
+
+def recognize_water_analysis_document(
+    *,
+    api_key: str,
+    raw: bytes,
+    filename: str,
+    mime: str | None = None,
+    model: str = "gpt-4.1-mini",
+) -> dict[str, Any]:
+    """Маршрутизатор: PDF распознаем как файл, изображения — как image input."""
+    mime_clean = str(mime or "").lower()
+    filename_clean = str(filename or "").lower()
+
+    if mime_clean == "application/pdf" or filename_clean.endswith(".pdf"):
+        return recognize_water_analysis_pdf(
+            api_key=api_key,
+            raw=raw,
+            filename=filename,
+            model=model,
+        )
+
+    return recognize_water_analysis_image(
+        api_key=api_key,
+        raw=raw,
+        filename=filename,
+        mime=mime,
+        model=model,
+    )
+
