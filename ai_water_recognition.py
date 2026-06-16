@@ -162,7 +162,7 @@ def recognize_water_analysis_image(
     raw: bytes,
     filename: str,
     mime: str | None = None,
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-4o-mini",
 ) -> dict[str, Any]:
     client = OpenAI(api_key=api_key)
     data_url = file_bytes_to_data_url(raw, filename, mime)
@@ -213,7 +213,7 @@ def recognize_water_analysis_pdf(
     api_key: str,
     raw: bytes,
     filename: str,
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-4o-mini",
 ) -> dict[str, Any]:
     """
     Распознает анализ воды из PDF.
@@ -274,7 +274,7 @@ def recognize_water_analysis_document(
     raw: bytes,
     filename: str,
     mime: str | None = None,
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-4o-mini",
 ) -> dict[str, Any]:
     """Маршрутизатор: PDF распознаем как файл, изображения — как image input."""
     mime_clean = str(mime or "").lower()

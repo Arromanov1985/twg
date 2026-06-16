@@ -80,15 +80,49 @@ def render_ai_water_recognition_block():
             st.error("Нет OPENAI_API_KEY в Streamlit Secrets.")
             return
 
-        with st.spinner("ИИ распознает показатели анализа воды..."):
-            result = recognize_water_analysis_document(
-                api_key=api_key,
-                raw=uploaded_file.getvalue(),
-                filename=getattr(uploaded_file, "name", "analysis.jpg"),
-                mime=getattr(uploaded_file, "type", None),
-            )
+        try:
+            with st.spinner("ИИ распознает показатели анализа воды..."):
+                result = recognize_water_analysis_document(
+                    api_key=api_key,
+                    raw=uploaded_file.getvalue(),
+                    filename=getattr(uploaded_file, "name", "analysis.jpg"),
+                    mime=getattr(uploaded_file, "type", None),
+                )
 
-        st.session_state["ai_water_recognition_result"] = result
+            st.session_state["ai_water_recognition_result"] = result
+
+        except Exception as exc:
+            message = str(exc)
+
+            if "rate_limit" in message.lower() or "ratelimit" in message.lower() or "429" in message:
+                st.error("ИИ-распознавание временно недоступно: превышен лимит OpenAI API. Введите анализ вручную или повторите позже.")
+            elif "insufficient_quota" in message.lower() or "quota" in message.lower():
+                st.error("ИИ-распознавание недоступно: закончилась квота OpenAI API. Проверьте баланс/лимиты API-ключа.")
+            else:
+                st.error("ИИ-распознавание не выполнено. Введите анализ вручную или попробуйте другое фото.")
+                with st.expander("Техническая ошибка"):
+                    st.code(message)
+
+            st.session_state["ai_water_recognition_result"] = {
+                "recognized": False,
+                "confidence": "low",
+                "source_quality": "Ошибка распознавания",
+                "values": {
+                    "ph": None,
+                    "iron": None,
+                    "manganese": None,
+                    "hardness": None,
+                    "tds": None,
+                    "permanganate": None,
+                    "odor_h2s": None,
+                    "bacteria": "не указано",
+                    "turbidity": None,
+                    "color": None,
+                    "ammonium": None
+                },
+                "warnings": ["ИИ-распознавание не выполнено. Можно ввести показатели вручную."],
+                "raw_detected_text": ""
+            }
 
     result = st.session_state.get("ai_water_recognition_result")
     if not result:
