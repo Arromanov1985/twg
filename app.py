@@ -9,6 +9,7 @@ import pandas as pd
 import base64
 from jinja2 import Template
 import streamlit as st
+from ai_water_ui import render_ai_water_recognition_block
 
 
 st.markdown("""
@@ -579,6 +580,8 @@ def admin_users_panel(current_user: dict):
 
 
 def build_analysis_files_uploader() -> list:
+    render_ai_water_recognition_block()
+
     st.subheader("Файлы анализа воды")
     files = st.file_uploader(
         "Загрузите до 5 файлов анализа воды: PDF, PNG, JPG",
